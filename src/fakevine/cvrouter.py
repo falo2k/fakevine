@@ -111,7 +111,6 @@ class CVRouter:
             ('/search', self._get_search, "General Search", True),
             ('/series/{series_id}', self._get_series, "Series Detail", True),
             ('/series_list', self._get_series_list, "Series Search", True),
-            ('/search/{search_id}', self._get_search, "Search Detail", True),
             ('/story_arc/{story_arc_id}', self._get_story_arc, "Story Arc Detail", True),
             ('/story_arcs', self._get_story_arcs, "Story Arc Search", True),
             ('/team/{team_id}', self._get_team, "Team Detail", True),
