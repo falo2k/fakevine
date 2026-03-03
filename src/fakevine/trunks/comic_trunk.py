@@ -18,6 +18,9 @@ class AuthenticationError(Exception):
 class UnsupportedResponseError(Exception):
     """Catch all for anything new and not yet covered (cloudflare?)."""
 
+class GatewayError(UnsupportedResponseError):
+    """Gateway timeouts.  TBD how best to handle these or just pass them on."""
+
 class ComicTrunk(ABC):
     """Abstract base class representing different types of ComicVine data sources.
 
@@ -35,7 +38,7 @@ class ComicTrunk(ABC):
         ...
 
     @abstractmethod
-    def volumes(self, params: FilterParams) -> VolumesResponse:
+    def volumes(self, params: FilterParams) -> CVResponse:
         ...
 
     @abstractmethod

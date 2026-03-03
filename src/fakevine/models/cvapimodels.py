@@ -76,7 +76,6 @@ class VolumeResponse(CVResponse):
 class VolumesResponse(CVResponse):
     results: list[BaseVolume] = []
 
-
 class SearchVolume(BaseVolume):
     resource_type: Literal["volume"] = "volume"
 

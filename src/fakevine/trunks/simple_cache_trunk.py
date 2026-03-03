@@ -2,13 +2,16 @@
 from typing import TypeVar
 
 import requests_cache
+from requests.adapters import HTTPAdapter
 from requests_cache import Response
 from requests_cache.backends.sqlite import SQLiteCache
+from urllib3.util import Retry
 
 from fakevine.models.cvapimodels import *
 from fakevine.trunks.comic_trunk import (
     AuthenticationError,
     ComicTrunk,
+    GatewayError,
     RateLimitError,
     RequestLimitError,
     UnsupportedResponseError,
@@ -35,6 +38,7 @@ class SimpleCacheTrunk(ComicTrunk):
             401: AuthenticationError,
             420: RequestLimitError,
             429: RateLimitError,
+            502: GatewayError,
         }
 
         self.headers = {
@@ -50,9 +54,16 @@ class SimpleCacheTrunk(ComicTrunk):
         else:
             self.cv_api_url = "https://comicvine.gamespot.com/api"
 
+        retries = Retry(
+            total=3,
+            backoff_factor=0.1,
+            status_forcelist=[502, 503, 504],
+        )
+
         sqlite_cache = SQLiteCache(cache_filename, wal= True)
         self._session = requests_cache.CachedSession(backend=sqlite_cache, expire_after=cache_expiry_seconds)
-
+        self._session.mount('https://', HTTPAdapter(max_retries=retries))
+        self._session.mount('http://', HTTPAdapter(max_retries=retries))
 
     T = TypeVar('T', bound=CVResponse)
 
@@ -69,10 +80,10 @@ class SimpleCacheTrunk(ComicTrunk):
         response = self._session.get(f'{self.cv_api_url}/volume/{item_id}', params=params, headers=self.headers)
         return self.process_response(response, model=VolumeResponse)
 
-    def volumes(self, params: FilterParams) -> VolumesResponse:
+    def volumes(self, params: FilterParams) -> CVResponse:
         params.api_key = self.cv_api_key
         response = self._session.get(f'{self.cv_api_url}/volumes', params=params, headers=self.headers)
-        return self.process_response(response, model=VolumesResponse)
+        return self.process_response(response, model=CVResponse)
 
     def search(self, params: SearchParams) -> SearchResponse:
         params.api_key = self.cv_api_key
