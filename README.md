@@ -5,6 +5,8 @@ It is built on FastAPI, and the router can be added to an existing app.
 
 Some responses are not exact copies - CV returns a webpage with some HTTP error codes that are not replicated as you should be using the status code.  There are also some documented CV endpoints that are intentionally not implemented for the backends as they are either not properly implemented on CV's end or just have junk data.  They should really be avoided by consumers, but if you must use them they are: /chat, /chats, /promo, /promos.
 
+You may also notice that there are a lot of nullable fields in the CV response models.  These reflect the real state of CV data rather than an ideal view of what could be (e.g. the API will serve empty volumes).
+
 ## Features
 Current:
 - A single backend offering a simple sqlite backed cache for ComicVine

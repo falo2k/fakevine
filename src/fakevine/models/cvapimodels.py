@@ -1,4 +1,5 @@
 # ruff: noqa: D101
+from tomlkit.items import Null
 from typing import Literal
 
 from pydantic import BaseModel, Field, computed_field
@@ -15,6 +16,7 @@ CV_STATUS_CODES: dict[int, str] = {
 }
 
 
+## Request Models
 class CommonParams(BaseModel):
     api_key: str | None = None
     format: Literal['json', 'xml', 'jsonp'] = 'json'
@@ -35,6 +37,7 @@ class SearchParams(CommonParams):
     query: str | None = None
 
 
+## Response Models
 class CVResponse(BaseModel):
     @computed_field
     def error(self) -> str:  # noqa: D102
@@ -47,6 +50,56 @@ class CVResponse(BaseModel):
     results: list[dict] | dict = []
     version: str | None = "1.0"
 
+class BasicLinkedEntity(BaseModel):
+    api_detail_url: str
+    id: int
+    name: str | None
+
+class LinkedIssue(BasicLinkedEntity):
+    issue_number: str
+
+class SiteLinkedEntity(BasicLinkedEntity):
+    site_detail_url: str
+
+class BaseCharacter(BaseModel):
+    aliases: str | None = None
+    api_detail_url: str
+    birth: str | None
+    count_of_issue_apperances: int = 0
+    date_added: str
+    date_last_updated: str
+    deck: str | None
+    description: str | None
+    first_appeared_in_issue: LinkedIssue | None
+    gender: int | None
+    id: int
+    image: dict[str,str] | None
+    name: str
+    origin: BasicLinkedEntity | None
+    publisher: BasicLinkedEntity | None
+    real_name: str | None
+    site_detail_url: str
+
+class DetailCharacter(BaseCharacter):
+    character_enemies: list[SiteLinkedEntity] = []
+    character_friends: list[SiteLinkedEntity] = []
+    creators: list[SiteLinkedEntity] = []
+    issue_credits: list[SiteLinkedEntity] = []
+    issues_died_in: list[SiteLinkedEntity] = []
+    movies: list[SiteLinkedEntity] = []
+    powers: list[BasicLinkedEntity] = []
+    story_arc_credits: list[SiteLinkedEntity] = []
+    team_enemies: list[SiteLinkedEntity] = []
+    team_friends: list[SiteLinkedEntity] = []
+    teams: list[SiteLinkedEntity] = []
+    volume_credits: list[SiteLinkedEntity] = []
+
+class CharactersResponse(CVResponse):
+    results: list[BaseCharacter]
+
+class CharacterResponse(CVResponse):
+    results: DetailCharacter | list = []
+
 class BaseVolume(BaseModel):
     aliases: str | None = None
     api_detail_url : str
@@ -54,15 +107,15 @@ class BaseVolume(BaseModel):
     date_added: str
     date_last_updated: str
     deck: str | None = None
-    description: str
-    first_issue: dict
+    description: str | None
+    first_issue: LinkedIssue | None
     id: int
-    image: dict[str,str]
-    last_issue: dict
+    image: dict[str,str] | None
+    last_issue: LinkedIssue | None
     name: str
-    publisher: dict
-    site_detail_url: str
-    start_year: str
+    publisher: BasicLinkedEntity | None
+    site_detail_url: str | None
+    start_year: str | None
 
 class DetailVolume(BaseVolume):
     characters : list[dict] | None = None
@@ -79,5 +132,8 @@ class VolumesResponse(CVResponse):
 class SearchVolume(BaseVolume):
     resource_type: Literal["volume"] = "volume"
 
+class SearchCharacter(BaseCharacter):
+    resource_type: Literal["character"] = "character"
+
 class SearchResponse(CVResponse):
-    results: list[SearchVolume | CVResponse] = []
+    results: list[SearchVolume | SearchCharacter | CVResponse] = []
