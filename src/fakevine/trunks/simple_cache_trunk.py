@@ -92,7 +92,7 @@ class SimpleCacheTrunk(ComicTrunk):
 
     def character(self, item_id: str, params: CommonParams) -> CVResponse:
         params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/character', params=params, headers=self.headers)
+        response = self._session.get(f'{self.cv_api_url}/character/{item_id}', params=params, headers=self.headers)
         return self.process_response(response, model=CVResponse)
 
     def characters(self, params: CommonParams) -> CVResponse:
@@ -100,19 +100,9 @@ class SimpleCacheTrunk(ComicTrunk):
         response = self._session.get(f'{self.cv_api_url}/characters', params=params, headers=self.headers)
         return self.process_response(response, model=CVResponse)
 
-    def chat(self, item_id: str, params: CommonParams) -> CVResponse:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/chat', params=params, headers=self.headers)
-        return self.process_response(response, model=CVResponse)
-
-    def chats(self, params: CommonParams) -> CVResponse:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/chats', params=params, headers=self.headers)
-        return self.process_response(response, model=CVResponse)
-
     def concept(self, item_id: str, params: CommonParams) -> CVResponse:
         params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/concept', params=params, headers=self.headers)
+        response = self._session.get(f'{self.cv_api_url}/concept/{item_id}', params=params, headers=self.headers)
         return self.process_response(response, model=CVResponse)
 
     def concepts(self, params: CommonParams) -> CVResponse:
@@ -122,7 +112,7 @@ class SimpleCacheTrunk(ComicTrunk):
 
     def episode(self, item_id: str, params: CommonParams) -> CVResponse:
         params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/episode', params=params, headers=self.headers)
+        response = self._session.get(f'{self.cv_api_url}/episode/{item_id}', params=params, headers=self.headers)
         return self.process_response(response, model=CVResponse)
 
     def episodes(self, params: CommonParams) -> CVResponse:
@@ -132,7 +122,7 @@ class SimpleCacheTrunk(ComicTrunk):
 
     def issue(self, item_id: str, params: CommonParams) -> CVResponse:
         params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/issue', params=params, headers=self.headers)
+        response = self._session.get(f'{self.cv_api_url}/issue/{item_id}', params=params, headers=self.headers)
         return self.process_response(response, model=CVResponse)
 
     def issues(self, params: CommonParams) -> CVResponse:
@@ -142,7 +132,7 @@ class SimpleCacheTrunk(ComicTrunk):
 
     def location(self, item_id: str, params: CommonParams) -> CVResponse:
         params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/location', params=params, headers=self.headers)
+        response = self._session.get(f'{self.cv_api_url}/location/{item_id}', params=params, headers=self.headers)
         return self.process_response(response, model=CVResponse)
 
     def locations(self, params: CommonParams) -> CVResponse:
@@ -152,7 +142,7 @@ class SimpleCacheTrunk(ComicTrunk):
 
     def movie(self, item_id: str, params: CommonParams) -> CVResponse:
         params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/movie', params=params, headers=self.headers)
+        response = self._session.get(f'{self.cv_api_url}/movie/{item_id}', params=params, headers=self.headers)
         return self.process_response(response, model=CVResponse)
 
     def movies(self, params: CommonParams) -> CVResponse:
@@ -162,7 +152,7 @@ class SimpleCacheTrunk(ComicTrunk):
 
     def object(self, item_id: str, params: CommonParams) -> CVResponse:
         params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/object', params=params,headers=self.headers)
+        response = self._session.get(f'{self.cv_api_url}/object/{item_id}', params=params,headers=self.headers)
         return self.process_response(response, model=CVResponse)
 
     def objects(self, params: CommonParams) -> CVResponse:
@@ -172,7 +162,7 @@ class SimpleCacheTrunk(ComicTrunk):
 
     def origin(self, item_id: str, params: CommonParams) -> CVResponse:
         params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/origin', params=params,headers=self.headers)
+        response = self._session.get(f'{self.cv_api_url}/origin/{item_id}', params=params,headers=self.headers)
         return self.process_response(response, model=CVResponse)
 
     def origins(self, params: CommonParams) -> CVResponse:
@@ -182,7 +172,7 @@ class SimpleCacheTrunk(ComicTrunk):
 
     def person(self, item_id: str, params: CommonParams) -> CVResponse:
         params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/person', params=params,headers=self.headers)
+        response = self._session.get(f'{self.cv_api_url}/person/{item_id}', params=params,headers=self.headers)
         return self.process_response(response, model=CVResponse)
 
     def people(self, params: CommonParams) -> CVResponse:
@@ -192,7 +182,7 @@ class SimpleCacheTrunk(ComicTrunk):
 
     def power(self, item_id: str, params: CommonParams) -> CVResponse:
         params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/power', params=params,headers=self.headers)
+        response = self._session.get(f'{self.cv_api_url}/power/{item_id}', params=params,headers=self.headers)
         return self.process_response(response, model=CVResponse)
 
     def powers(self, params: CommonParams) -> CVResponse:
@@ -200,19 +190,9 @@ class SimpleCacheTrunk(ComicTrunk):
         response = self._session.get(f'{self.cv_api_url}/powers', params=params,headers=self.headers)
         return self.process_response(response, model=CVResponse)
 
-    def promo(self, item_id: str, params: CommonParams) -> CVResponse:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/promo', params=params,headers=self.headers)
-        return self.process_response(response, model=CVResponse)
-
-    def promos(self, params: CommonParams) -> CVResponse:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/promos', params=params,headers=self.headers)
-        return self.process_response(response, model=CVResponse)
-
     def publisher(self, item_id: str, params: CommonParams) -> CVResponse:
         params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/publisher', params=params,headers=self.headers)
+        response = self._session.get(f'{self.cv_api_url}/publisher/{item_id}', params=params,headers=self.headers)
         return self.process_response(response, model=CVResponse)
 
     def publishers(self, params: CommonParams) -> CVResponse:
@@ -222,7 +202,7 @@ class SimpleCacheTrunk(ComicTrunk):
 
     def series(self, item_id: str, params: CommonParams) -> CVResponse:
         params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/series', params=params,headers=self.headers)
+        response = self._session.get(f'{self.cv_api_url}/series/{item_id}', params=params,headers=self.headers)
         return self.process_response(response, model=CVResponse)
 
     def series_list(self, params: CommonParams) -> CVResponse:
@@ -232,7 +212,7 @@ class SimpleCacheTrunk(ComicTrunk):
 
     def story_arc(self, item_id: str, params: CommonParams) -> CVResponse:
         params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/story_arc', params=params,headers=self.headers)
+        response = self._session.get(f'{self.cv_api_url}/story_arc/{item_id}', params=params,headers=self.headers)
         return self.process_response(response, model=CVResponse)
 
     def story_arcs(self, params: CommonParams) -> CVResponse:
@@ -242,7 +222,7 @@ class SimpleCacheTrunk(ComicTrunk):
 
     def team(self, item_id: str, params: CommonParams) -> CVResponse:
         params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/team', params=params, headers=self.headers)
+        response = self._session.get(f'{self.cv_api_url}/team/{item_id}', params=params, headers=self.headers)
         return self.process_response(response, model=CVResponse)
 
     def teams(self, params: CommonParams) -> CVResponse:
@@ -257,7 +237,7 @@ class SimpleCacheTrunk(ComicTrunk):
 
     def video(self, item_id: str, params: CommonParams) -> CVResponse:
         params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/video', params=params, headers=self.headers)
+        response = self._session.get(f'{self.cv_api_url}/video/{item_id}', params=params, headers=self.headers)
         return self.process_response(response, model=CVResponse)
 
     def videos(self, params: CommonParams) -> CVResponse:
@@ -267,7 +247,7 @@ class SimpleCacheTrunk(ComicTrunk):
 
     def video_type(self, item_id: str, params: CommonParams) -> CVResponse:
         params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/video_type', params=params, headers=self.headers)
+        response = self._session.get(f'{self.cv_api_url}/video_type/{item_id}', params=params, headers=self.headers)
         return self.process_response(response, model=CVResponse)
 
     def video_types(self, params: CommonParams) -> CVResponse:
@@ -277,7 +257,7 @@ class SimpleCacheTrunk(ComicTrunk):
 
     def video_category(self, item_id: str, params: CommonParams) -> CVResponse:
         params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/video_category', params=params, headers=self.headers)
+        response = self._session.get(f'{self.cv_api_url}/video_category/{item_id}', params=params, headers=self.headers)
         return self.process_response(response, model=CVResponse)
 
     def video_categories(self, params: CommonParams) -> CVResponse:

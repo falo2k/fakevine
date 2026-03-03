@@ -50,6 +50,10 @@ class CVRouter:
         status_code=420,
         content={key:value for key, value in
             jsonable_encoder(CVResponse(limit=0, status_code=107)).items() if key != 'version'})
+    DEADEND_RESPONSE: JSONResponse = JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={"error": "OK", "limit": None, "offset": None, "number_of_page_results": 0,
+                "number_of_total_results": 0, "status_code": 1, "results": [], "version": "1.0" })
 
     router: APIRouter
     api_key: str | None = None
@@ -68,65 +72,76 @@ class CVRouter:
         self.router = APIRouter()
         self._attach_routes()
 
+        self._exception_responses = {
+            RateLimitError : CVRouter.RATE_LIMITED,
+            AuthenticationError : CVRouter.INVALID_API_KEY,
+            RequestLimitError : CVRouter.REQUEST_LIMIT_BREACH,
+            GatewayError: HTMLResponse(status_code=status.HTTP_502_BAD_GATEWAY, 
+                content="<html><title>502 Bad Gateway</title><body>502 Bad Gateway</body></html>"),
+        }
+
     def _attach_routes(self) -> None:
         routes =[
-            ('/volumes', self._get_volumes, "Volume Search"),
-            ('/volume/{volume_id}', self._get_volume, "Volume Detail"),
-            ('/search', self._get_search, "General Search"),
-            ('/types', self._get_types, "Type Data"),
-            ('/character/{character_id}', self._get_character, "Character Detail"),
-            ('/characters', self._get_characters, "Character Search"),
-            ('/chat/{chat_id}', self._get_chat, "Chat Detail"),
-            ('/chats', self._get_chats, "Chat Search"),
-            ('/concept/{concept_id}', self._get_concept, "Concept Detail"),
-            ('/concepts', self._get_concepts, "Concept Search"),
-            ('/episode/{episode_id}', self._get_episode, "Episode Detail"),
-            ('/episodes', self._get_episodes, "Episode Search"),
-            ('/issue/{issue_id}', self._get_issue, "Issue Detail"),
-            ('/issues', self._get_issues, "Issue Search"),
-            ('/location/{location_id}', self._get_location, "Location Detail"),
-            ('/locations', self._get_locations, "Location Search"),
-            ('/movie/{movie_id}', self._get_movie, "Movie Detail"),
-            ('/movies', self._get_movies, "Movie Search"),
-            ('/object/{object_id}', self._get_object, "Object Detail"),
-            ('/objects', self._get_objects, "Object Search"),
-            ('/origin/{origin_id}', self._get_origin, "Origin Detail"),
-            ('/origins', self._get_origins, "Origin Search"),
-            ('/person/{person_id}', self._get_person, "Person Detail"),
-            ('/people/{people_id}', self._get_people, "People Detail"),
-            ('/power/{power_id}', self._get_power, "Power Detail"),
-            ('/powers', self._get_powers, "Power Search"),
-            ('/promo/{promo_id}', self._get_promo, "Promo Detail"),
-            ('/promos', self._get_promos, "Promo Search"),
-            ('/publisher/{publisher_id}', self._get_publisher, "Publisher Detail"),
-            ('/publishers', self._get_publishers, "Publisher Search"),
-            ('/series', self._get_series, "Serie Search"),
-            ('/series_list/{series_list_id}', self._get_series_list, "Series_list Detail"),
-            ('/search/{search_id}', self._get_search, "Search Detail"),
-            ('/story_arc/{story_arc_id}', self._get_story_arc, "Story_arc Detail"),
-            ('/story_arcs', self._get_story_arcs, "Story_arc Search"),
-            ('/team/{team_id}', self._get_team, "Team Detail"),
-            ('/teams', self._get_teams, "Team Search"),
-            ('/video/{video_id}', self._get_video, "Video Detail"),
-            ('/videos', self._get_videos, "Video Search"),
-            ('/video_type/{video_type_id}', self._get_video_type, "Video_type Detail"),
-            ('/video_types', self._get_video_types, "Video_type Search"),
-            ('/video_category/{video_category_id}', self._get_video_category, "Video_category Detail"),
-            ('/video_categories', self._get_video_categories, "Video_categorie Search"),
+            ('/character/{character_id}', self._get_character, "Character Detail", True),
+            ('/characters', self._get_characters, "Character Search", True),
+            ('/chat/{item_id}', self._get_object_not_found, "Chat Detail", False),
+            ('/chats', self._get_cv_deadend, "Chat Search", False),
+            ('/concept/{concept_id}', self._get_concept, "Concept Detail", True),
+            ('/concepts', self._get_concepts, "Concept Search", True),
+            ('/episode/{episode_id}', self._get_episode, "Episode Detail", True),
+            ('/episodes', self._get_episodes, "Episode Search", True),
+            ('/issue/{issue_id}', self._get_issue, "Issue Detail", True),
+            ('/issues', self._get_issues, "Issue Search", True),
+            ('/location/{location_id}', self._get_location, "Location Detail", True),
+            ('/locations', self._get_locations, "Location Search", True),
+            ('/movie/{movie_id}', self._get_movie, "Movie Detail", True),
+            ('/movies', self._get_movies, "Movie Search", True),
+            ('/object/{object_id}', self._get_object, "Object Detail", True),
+            ('/objects', self._get_objects, "Object Search", True),
+            ('/origin/{origin_id}', self._get_origin, "Origin Detail", True),
+            ('/origins', self._get_origins, "Origin Search", True),
+            ('/person/{person_id}', self._get_person, "Person Detail", True),
+            ('/people', self._get_people, "People Detail", True),
+            ('/power/{power_id}', self._get_power, "Power Detail", True),
+            ('/powers', self._get_powers, "Power Search", True),
+            ('/promo/{promo_id}', self._get_object_not_found, "Promo Detail", False),
+            ('/promos', self._get_cv_deadend, "Promo Search", False),
+            ('/publisher/{publisher_id}', self._get_publisher, "Publisher Detail", True),
+            ('/publishers', self._get_publishers, "Publisher Search", True),
+            ('/search', self._get_search, "General Search", True),
+            ('/series/{series_id}', self._get_series, "Series Detail", True),
+            ('/series_list', self._get_series_list, "Series Search", True),
+            ('/search/{search_id}', self._get_search, "Search Detail", True),
+            ('/story_arc/{story_arc_id}', self._get_story_arc, "Story Arc Detail", True),
+            ('/story_arcs', self._get_story_arcs, "Story Arc Search", True),
+            ('/team/{team_id}', self._get_team, "Team Detail", True),
+            ('/teams', self._get_teams, "Team Search", True),
+            ('/types', self._get_types, "Resource Type Data", True),
+            ('/video/{video_id}', self._get_video, "Video Detail", True),
+            ('/videos', self._get_videos, "Video Search", True),
+            ('/video_type/{video_type_id}', self._get_video_type, "Video Type Detail", True),
+            ('/video_types', self._get_video_types, "Video Type Search", True),
+            ('/video_category/{video_category_id}', self._get_video_category, "Video Category Detail", True),
+            ('/video_categories', self._get_video_categories, "Video Category Search", True),
+            ('/volumes', self._get_volumes, "Volume Search", True),
+            ('/volume/{volume_id}', self._get_volume, "Volume Detail", True),
+            ('/*', self._get_undefined, "Catch All", False),
         ]
 
         for route in routes:
-            self.router.add_api_route(methods=['GET'], path=route[0], endpoint=route[1], name=route[2])
+            self.router.add_api_route(
+                methods=['GET'],
+                path=route[0],
+                endpoint=route[1],
+                name=route[2],
+                include_in_schema=route[3])
 
-        self.router.add_api_route(methods=['GET'], path='/*',
-            endpoint=self._get_undefined, name="Catch All", include_in_schema=False)
-
-    def _fetch_response(self, params: CommonParams, trunk_method: Callable, item_id: str | None = None) -> Response:
+    def _fetch_response(self, params: CommonParams, trunk_method: Callable | None, item_id: str | None = None) -> Response:  # noqa: E501
         """Handle passing parameters to the ComicTrunk and processing the response into the correct format.
 
         Args:
             params (CommonParams): The parameters passed from the route.
-            trunk_method (Callable): The ComicTrunk method for this route.
+            trunk_method (Callable | None): The ComicTrunk method for this route.  If None, is an unused CV endpoint.
             item_id (str | None, optional): For routes that take an id parameter (e.g. /volume). Defaults to None.
 
         Returns:
@@ -140,21 +155,16 @@ class CVRouter:
         if params.format != "json":
             return CVRouter.OBJECT_NOT_FOUND
 
-        exception_responses = {
-            RateLimitError : CVRouter.RATE_LIMITED,
-            AuthenticationError : CVRouter.INVALID_API_KEY,
-            RequestLimitError : CVRouter.REQUEST_LIMIT_BREACH,
-            GatewayError: HTMLResponse(status_code=status.HTTP_502_BAD_GATEWAY, 
-                content="<html><title>502 Bad Gateway</title><body>502 Bad Gateway</body></html>"),
-        }
-
-        try:
-            data = trunk_method(params=params) if item_id is None else trunk_method(item_id=item_id, params=params)
-        except (RateLimitError, AuthenticationError, RequestLimitError, GatewayError) as ex:
-            return exception_responses[type(ex)]
-        except UnsupportedResponseError:
-            exception_html = f'<html><title>Unsupported Feature</title><body>{traceback.format_exc()}</body></html>'
-            return HTMLResponse(status_code=status.HTTP_501_NOT_IMPLEMENTED, content=exception_html)
+        if trunk_method is None:
+            data = self.DEADEND_RESPONSE
+        else:
+            try:
+                data = trunk_method(params=params) if item_id is None else trunk_method(item_id=item_id, params=params)
+            except (RateLimitError, AuthenticationError, RequestLimitError, GatewayError) as ex:
+                return self._exception_responses[type(ex)]
+            except UnsupportedResponseError:
+                exception_html = f'<html><title>Unsupported Feature</title><body>{traceback.format_exc()}</body></html>'
+                return HTMLResponse(status_code=status.HTTP_501_NOT_IMPLEMENTED, content=exception_html)
 
         return data
 
@@ -170,128 +180,120 @@ class CVRouter:
 
         return self._fetch_response(params=params, trunk_method=self.trunk.search)
 
-    async def _get_types(self, format: Literal['json', 'xml', 'jsonp'] = 'json', api_key: str | None = None) -> Response:
+    async def _get_types(self,
+                        format: Literal['json', 'xml', 'jsonp'] = 'json',
+                        api_key: str | None = None) -> Response:
         return self._fetch_response(
             params=CommonParams.model_validate({'format':format, 'api_key': api_key}),
             trunk_method= self.trunk.types)
 
-    async def _get_character(self, character_id: str, params: Annotated[CommonParams, Query()]) ->Response:
+    async def _get_character(self, character_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.character, item_id=character_id)
 
-    async def _get_characters(self, params: Annotated[FilterParams, Query()]) ->Response:
+    async def _get_characters(self, params: Annotated[FilterParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.characters)
 
-    async def _get_chat(self, chat_id: str, params: Annotated[CommonParams, Query()]) ->Response:
-        return self._fetch_response(params=params, trunk_method=self.trunk.chat, item_id=chat_id)
-
-    async def _get_chats(self, params: Annotated[FilterParams, Query()]) ->Response:
-        return self._fetch_response(params=params, trunk_method=self.trunk.chats)
-
-    async def _get_concept(self, concept_id: str, params: Annotated[CommonParams, Query()]) ->Response:
+    async def _get_concept(self, concept_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.concept, item_id=concept_id)
 
-    async def _get_concepts(self, params: Annotated[FilterParams, Query()]) ->Response:
+    async def _get_concepts(self, params: Annotated[FilterParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.concepts)
 
-    async def _get_episode(self, episode_id: str, params: Annotated[CommonParams, Query()]) ->Response:
+    async def _get_episode(self, episode_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.episode, item_id=episode_id)
 
-    async def _get_episodes(self, params: Annotated[FilterParams, Query()]) ->Response:
+    async def _get_episodes(self, params: Annotated[FilterParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.episodes)
 
-    async def _get_issue(self, issue_id: str, params: Annotated[CommonParams, Query()]) ->Response:
+    async def _get_issue(self, issue_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.issue, item_id=issue_id)
 
-    async def _get_issues(self, params: Annotated[FilterParams, Query()]) ->Response:
+    async def _get_issues(self, params: Annotated[FilterParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.issues)
 
-    async def _get_location(self, location_id: str, params: Annotated[CommonParams, Query()]) ->Response:
+    async def _get_location(self, location_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.location, item_id=location_id)
 
-    async def _get_locations(self, params: Annotated[FilterParams, Query()]) ->Response:
+    async def _get_locations(self, params: Annotated[FilterParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.locations)
 
-    async def _get_movie(self, movie_id: str, params: Annotated[CommonParams, Query()]) ->Response:
+    async def _get_movie(self, movie_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.movie, item_id=movie_id)
 
-    async def _get_movies(self, params: Annotated[FilterParams, Query()]) ->Response:
+    async def _get_movies(self, params: Annotated[FilterParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.movies)
 
-    async def _get_object(self, object_id: str, params: Annotated[CommonParams, Query()]) ->Response:
+    async def _get_object(self, object_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.object, item_id=object_id)
 
-    async def _get_objects(self, params: Annotated[FilterParams, Query()]) ->Response:
+    async def _get_objects(self, params: Annotated[FilterParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.objects)
 
-    async def _get_origin(self, origin_id: str, params: Annotated[CommonParams, Query()]) ->Response:
+    async def _get_origin(self, origin_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.origin, item_id=origin_id)
 
-    async def _get_origins(self, params: Annotated[FilterParams, Query()]) ->Response:
+    async def _get_origins(self, params: Annotated[FilterParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.origins)
 
-    async def _get_person(self, person_id: str, params: Annotated[CommonParams, Query()]) ->Response:
+    async def _get_person(self, person_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.person, item_id=person_id)
 
-    async def _get_people(self, people_id: str, params: Annotated[CommonParams, Query()]) ->Response:
-        return self._fetch_response(params=params, trunk_method=self.trunk.people, item_id=people_id)
+    async def _get_people(self, params: Annotated[CommonParams, Query()]) -> Response:
+        return self._fetch_response(params=params, trunk_method=self.trunk.people)
 
-    async def _get_power(self, power_id: str, params: Annotated[CommonParams, Query()]) ->Response:
+    async def _get_power(self, power_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.power, item_id=power_id)
 
-    async def _get_powers(self, params: Annotated[FilterParams, Query()]) ->Response:
+    async def _get_powers(self, params: Annotated[FilterParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.powers)
 
-    async def _get_promo(self, promo_id: str, params: Annotated[CommonParams, Query()]) ->Response:
-        return self._fetch_response(params=params, trunk_method=self.trunk.promo, item_id=promo_id)
-
-    async def _get_promos(self, params: Annotated[FilterParams, Query()]) ->Response:
-        return self._fetch_response(params=params, trunk_method=self.trunk.promos)
-
-    async def _get_publisher(self, publisher_id: str, params: Annotated[CommonParams, Query()]) ->Response:
+    async def _get_publisher(self, publisher_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.publisher, item_id=publisher_id)
 
-    async def _get_publishers(self, params: Annotated[FilterParams, Query()]) ->Response:
+    async def _get_publishers(self, params: Annotated[FilterParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.publishers)
 
-    async def _get_series(self, params: Annotated[FilterParams, Query()]) ->Response:
-        return self._fetch_response(params=params, trunk_method=self.trunk.series)
+    async def _get_series(self, series_id: str, params: Annotated[FilterParams, Query()]) -> Response:
+        return self._fetch_response(params=params, trunk_method=self.trunk.series, item_id=series_id)
 
-    async def _get_series_list(self, series_list_id: str, params: Annotated[CommonParams, Query()]) ->Response:
-        return self._fetch_response(params=params, trunk_method=self.trunk.series_list, item_id=series_list_id)
+    async def _get_series_list(self, params: Annotated[CommonParams, Query()]) -> Response:
+        return self._fetch_response(params=params, trunk_method=self.trunk.series_list)
 
-    async def _get_search(self, search_id: str, params: Annotated[CommonParams, Query()]) ->Response:
-        return self._fetch_response(params=params, trunk_method=self.trunk.search, item_id=search_id)
-
-    async def _get_story_arc(self, story_arc_id: str, params: Annotated[CommonParams, Query()]) ->Response:
+    async def _get_story_arc(self, story_arc_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.story_arc, item_id=story_arc_id)
 
-    async def _get_story_arcs(self, params: Annotated[FilterParams, Query()]) ->Response:
+    async def _get_story_arcs(self, params: Annotated[FilterParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.story_arcs)
 
-    async def _get_team(self, team_id: str, params: Annotated[CommonParams, Query()]) ->Response:
+    async def _get_team(self, team_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.team, item_id=team_id)
 
-    async def _get_teams(self, params: Annotated[FilterParams, Query()]) ->Response:
+    async def _get_teams(self, params: Annotated[FilterParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.teams)
 
-    async def _get_video(self, video_id: str, params: Annotated[CommonParams, Query()]) ->Response:
+    async def _get_video(self, video_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.video, item_id=video_id)
 
-    async def _get_videos(self, params: Annotated[FilterParams, Query()]) ->Response:
+    async def _get_videos(self, params: Annotated[FilterParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.videos)
 
-    async def _get_video_type(self, video_type_id: str, params: Annotated[CommonParams, Query()]) ->Response:
+    async def _get_video_type(self, video_type_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.video_type, item_id=video_type_id)
 
-    async def _get_video_types(self, params: Annotated[FilterParams, Query()]) ->Response:
+    async def _get_video_types(self, params: Annotated[FilterParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.video_types)
 
-    async def _get_video_category(self, video_category_id: str, params: Annotated[CommonParams, Query()]) ->Response:
+    async def _get_video_category(self, video_category_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.video_category, item_id=video_category_id)
 
-    async def _get_video_categories(self, params: Annotated[FilterParams, Query()]) ->Response:
+    async def _get_video_categories(self, params: Annotated[FilterParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.video_categories)
 
+    async def _get_cv_deadend(self, params: Annotated[CommonParams, Query()]) -> Response:
+        return self._fetch_response(params=params, trunk_method=None)
+
+    async def _get_object_not_found(self, item_id: str | None, params: Annotated[CommonParams, Query()]) -> Response:
+        return self._fetch_response(params=params, trunk_method=lambda *_, **__: self.OBJECT_NOT_FOUND, item_id=item_id)
 
     async def _get_undefined(self) -> HTMLResponse:
         return HTMLResponse(content="Unknown route", status_code=status.HTTP_404_NOT_FOUND)

@@ -50,14 +50,6 @@ class ComicTrunk(ABC):
         ...
 
     @abstractmethod
-    def chat(self, item_id: str, params: CommonParams) -> CVResponse:
-        ...
-
-    @abstractmethod
-    def chats(self, params: CommonParams) -> CVResponse:
-        ...
-
-    @abstractmethod
     def concept(self, item_id: str, params: CommonParams) -> CVResponse:
         ...
 
@@ -127,14 +119,6 @@ class ComicTrunk(ABC):
 
     @abstractmethod
     def powers(self, params: CommonParams) -> CVResponse:
-        ...
-
-    @abstractmethod
-    def promo(self, item_id: str, params: CommonParams) -> CVResponse:
-        ...
-
-    @abstractmethod
-    def promos(self, params: CommonParams) -> CVResponse:
         ...
 
     @abstractmethod

@@ -3,7 +3,7 @@ This is a ComicVine compatible API package that can serve comic metadata using t
 
 It is built on FastAPI, and the router can be added to an existing app.
 
-Some responses are not exact copies - CV returns a webpage with some HTTP error codes that are not replicated as you should be using the status code.
+Some responses are not exact copies - CV returns a webpage with some HTTP error codes that are not replicated as you should be using the status code.  There are also some documented CV endpoints that are intentionally not implemented for the backends as they are either not properly implemented on CV's end or just have junk data.  They should really be avoided by consumers, but if you must use them they are: /chat, /chats, /promo, /promos.
 
 ## Features
 Current:
