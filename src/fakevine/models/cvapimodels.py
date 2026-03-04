@@ -1,7 +1,7 @@
 # ruff: noqa: D101
-from typing import Annotated, Any, Literal, TypeVar
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, computed_field, create_model
+from pydantic import BaseModel, ConfigDict, Field, computed_field
 
 CV_STATUS_CODES: dict[int, str] = {
     1:      "OK",
@@ -65,21 +65,23 @@ class LinkedIssue(BasicLinkedEntity):
 class SiteLinkedEntity(BasicLinkedEntity):
     site_detail_url: str
 
-class BaseCharacter(BaseModel):
-    id: int
-    name: str
-    api_detail_url: str
-    site_detail_url: str
+class BaseEntity(BaseModel):
     aliases: str | None = None
-    birth: str | None
-    count_of_issue_apperances: int = 0
+    api_detail_url: str
     date_added: str
     date_last_updated: str
-    deck: str | None
-    description: str | None
+    deck: str | None = None
+    description: str | None = None
+    id: int
+    image: dict[str, str | None] | None = None
+    name: str | None = None
+    site_detail_url: str
+
+class BaseCharacter(BaseEntity):
+    birth: Annotated[str, "Seems to take a date string in the form YYYY-MM-DD hh:mm:ss"] | None
+    count_of_issue_apperances: int = 0
     first_appeared_in_issue: LinkedIssue | None
     gender: int | None
-    image: dict[str,str] | None
     origin: BasicLinkedEntity | None
     publisher: BasicLinkedEntity | None
     real_name: str | None
@@ -98,18 +100,9 @@ class DetailCharacter(BaseCharacter):
     teams: list[SiteLinkedEntity] = []
     volume_credits: list[SiteLinkedEntity] = []
 
-class BaseConcept(BaseModel):
-    id: int
-    name: str
-    api_detail_url: str
-    site_detail_url: str
+class BaseConcept(BaseEntity):
     count_of_issue_apperances: int = 0
-    date_added: str
-    date_last_updated: str
-    deck: str | None
-    description: str | None
     first_appeared_in_issue: LinkedIssue | None
-    image: dict[str,str] | None
     start_year: str | None
 
 class DetailConcept(BaseConcept):
@@ -125,20 +118,10 @@ class AssociatedImages(BaseModel):
     caption: str | None
     image_tags: str | None
 
-class BaseIssue(BaseModel):
-    id: int
-    name: str
-    api_detail_url: str
-    site_detail_url: str
-    aliases: str | None = None
-    cover_date: str | None
-    date_added: str
-    date_last_updated: str
-    deck: str | None
-    description: str | None
-    has_staff_review: Literal[False] | SiteLinkedEntity
-    image: dict[str,str] | None
+class BaseIssue(BaseEntity):
     associated_images: list[AssociatedImages] = []
+    cover_date: str | None
+    has_staff_review: Literal[False] | SiteLinkedEntity
     issue_number: str | None # Unbelievable that this can be empty. "Mature data source."
     store_date: str | None
     volume: SiteLinkedEntity | None
@@ -163,19 +146,9 @@ class DetailIssue(BaseIssue):
     team_credits: list[SiteLinkedEntity] = []
     team_disbanded_in: list[SiteLinkedEntity] = []
 
-class BaseLocation(BaseModel):
-    id: int
-    name: str
-    api_detail_url: str
-    site_detail_url: str
-    aliases: str | None = None
+class BaseLocation(BaseEntity):
     count_of_issue_appearances: int
-    date_added: str
-    date_last_updated: str
-    deck: str | None
-    description: str | None
     first_appeared_in_issue: LinkedIssue | None
-    image: dict[str,str] | None
     start_year: str | None
 
 class DetailLocation(BaseLocation):
@@ -186,19 +159,9 @@ class DetailLocation(BaseLocation):
 
 # TODO: movies model
 
-class BaseObject(BaseModel):
-    id: int
-    name: str
-    api_detail_url: str
-    site_detail_url: str
-    aliases: str | None = None
+class BaseObject(BaseEntity):
     count_of_issue_appearances: int
-    date_added: str
-    date_last_updated: str
-    deck: str | None
-    description: str | None
     first_appeared_in_issue: LinkedIssue | None
-    image: dict[str,str] | None
     start_year: str | None
 
 class DetailObject(BaseObject):
@@ -223,24 +186,14 @@ class CVDate(BaseModel):
     timezone: Annotated[str, "e.g. America/Los_Angeles"]
     timezone_type: Annotated[Literal[3], "Can't find evidence of any other value than 3 here"] = 3
 
-class BasePerson(BaseModel):
-    aliases: str | None = None
-    api_detail_url: str
-    date_added: str
-    date_last_updated: str
-    id: int
-    name: str
-    count_of_isssue_appearances: Annotated[int, "Yes, isssue.  You want to fight about it?"] | None
-    site_detail_url: str
+class BasePerson(BaseEntity):
     birth: Annotated[str, "Seems to take a date string in the form YYYY-MM-DD hh:mm:ss"] | None
     country: str | None
+    count_of_isssue_appearances: Annotated[int, "Yes, isssue.  You want to fight about it?"] | None
     death: Annotated[CVDate, "Of course this is an entirely different format to birth.  Of course it is."] | None
-    deck: str | None
-    description: str | None
     email: str | None = None
     gender: Annotated[int, "0: Unknown, 1: Male, 2 or 3: Female"] | None
     hometown: str | None
-    image: dict[str, str | None] | None
     website: str | None
 
 class DetailPerson(BasePerson):
@@ -249,29 +202,15 @@ class DetailPerson(BasePerson):
     story_arc_credits: list[SiteLinkedEntity] = []
     volume_credits: list[SiteLinkedEntity] = []
 
-class BasePower(BaseModel):
-    aliases: str | None = None
-    api_detail_url: str
-    date_added: str
-    date_last_updated: str
-    id: int
-    name: str
-    description: str | None
-    site_detail_url: str
+# /powers doesn't use deck or image from the common entity model
+class BasePower(BaseEntity):
+    deck: None = None
+    image: None = None
 
 class DetailPower(BasePower):
     characters: list[SiteLinkedEntity] = []
 
-class BasePublisher(BaseModel):
-    aliases: str | None = None
-    api_detail_url: str
-    date_added: str
-    date_last_updated: str
-    id: int
-    name: str
-    description: str | None
-    site_detail_url: str
-    image: dict[str, str | None] | None
+class BasePublisher(BaseEntity):
     location_address: str | None
     location_city:  str | None
     location_state:  str | None
@@ -284,20 +223,10 @@ class DetailPublisher(BasePublisher):
 
 # TODO: series model
 
-class BaseStoryArc(BaseModel):
-    aliases: str | None = None
-    api_detail_url: str
-    site_detail_url: str
+class BaseStoryArc(BaseEntity):
     count_of_isssue_appearances: Annotated[int, "Yes, isssue.  You want to fight about it?"] | None
-    deck: str | None
-    date_added: str
-    date_last_updated: str
-    id: int
-    name: str
-    description: str | None
-    first_appeared_in_issue: LinkedIssue | None
     first_appeared_in_episode: dict[str,Any] | None
-    image: dict[str, str | None] | None
+    first_appeared_in_issue: LinkedIssue | None
     publisher: SiteLinkedEntity | None
 
 class DetailStoryArc(BaseStoryArc):
@@ -305,20 +234,10 @@ class DetailStoryArc(BaseStoryArc):
     issues: list[SiteLinkedEntity] = []
     movies: list[SiteLinkedEntity] = []
 
-class BaseTeam(BaseModel):
-    aliases: str | None = None
-    api_detail_url: str
-    site_detail_url: str
+class BaseTeam(BaseEntity):
     count_of_isssue_appearances: Annotated[int, "Yes, isssue.  You want to fight about it?"] | None
     count_of_team_members: int
-    deck: str | None
-    description: str | None
-    date_added: str
-    date_last_updated: str
-    id: int
-    name: str
     first_appeared_in_issue: LinkedIssue | None
-    image: dict[str, str | None] | None
     publisher: BasicLinkedEntity | None
 
 class DetailTeam(BaseTeam):
@@ -334,24 +253,14 @@ class DetailTeam(BaseTeam):
 
 class BaseTypes(BaseModel):
     detail_resource_name: str
-    list_resource_name: str
     id: int
+    list_resource_name: str
 
 # TODO: video* models
 
-class BaseVolume(BaseModel):
-    id: int
-    name: str
-    api_detail_url: str
-    site_detail_url: str
-    aliases: str | None = None
+class BaseVolume(BaseEntity):
     count_of_issues: int
-    date_added: str
-    date_last_updated: str
-    deck: str | None = None
-    description: str | None
     first_issue: LinkedIssue | None
-    image: dict[str,str] | None
     last_issue: LinkedIssue | None
     publisher: BasicLinkedEntity | None
     start_year: str | None
