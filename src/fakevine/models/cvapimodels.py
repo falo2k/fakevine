@@ -1,5 +1,5 @@
 # ruff: noqa: D101
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, computed_field
 
@@ -92,12 +92,6 @@ class DetailCharacter(BaseCharacter):
     teams: list[SiteLinkedEntity] = []
     volume_credits: list[SiteLinkedEntity] = []
 
-class CharactersResponse(CVResponse):
-    results: list[BaseCharacter]
-
-class CharacterResponse(CVResponse):
-    results: DetailCharacter | list = []
-
 class SearchCharacter(BaseCharacter):
     resource_type: Literal["character"] = "character"
 
@@ -115,12 +109,6 @@ class DetailConcept(BaseConcept):
     issue_credits: list[SiteLinkedEntity] = []
     movies: list[SiteLinkedEntity] = []
     volume_credits: list[SiteLinkedEntity] = []
-
-class ConceptsResponse(CVResponse):
-    results: list[BaseConcept]
-
-class ConceptResponse(CVResponse):
-    results: DetailConcept | list = []
 
 class SearchConcept(BaseConcept):
     resource_type: Literal["concept"] = "concept"
@@ -168,14 +156,66 @@ class DetailIssue(BaseIssue):
     team_credits: list[SiteLinkedEntity] = []
     team_disbanded_in: list[SiteLinkedEntity] = []
 
-class IssueResponse(CVResponse):
-    results: DetailIssue | list = []
-
-class IssuesResponse(CVResponse):
-    results: list[BaseIssue] = []
-
 class SearchIssue(BaseIssue):
     resource_type: Literal["issue"] = "issue"
+
+class BaseLocation(CoreEntityModel):
+    aliases: str | None = None
+    count_of_issue_appearances: int
+    date_added: str
+    date_last_updated: str
+    deck: str | None
+    description: str | None
+    first_appeared_in_issue: LinkedIssue | None
+    image: dict[str,str] | None
+    start_year: str | None
+
+class DetailLocation(BaseLocation):
+    issue_credits: list[SiteLinkedEntity] = []
+    movies: list[SiteLinkedEntity] = []
+    story_arc_credits: list[SiteLinkedEntity] = []
+    volume_credits: list[SiteLinkedEntity] = []
+
+class SearchLocation(BaseLocation):
+    resource_type: Literal["location"] = "location"
+
+# TODO: movies model
+
+class BaseObject(CoreEntityModel):
+    aliases: str | None = None
+    count_of_issue_appearances: int
+    date_added: str
+    date_last_updated: str
+    deck: str | None
+    description: str | None
+    first_appeared_in_issue: LinkedIssue | None
+    image: dict[str,str] | None
+    start_year: str | None
+
+class DetailObject(BaseObject):
+    issue_credits: list[SiteLinkedEntity] = []
+    movies: list[SiteLinkedEntity] = []
+    story_arc_credits: list[SiteLinkedEntity] = []
+    volume_credits: list[SiteLinkedEntity] = []
+
+class SearchObject(BaseObject):
+    resource_type: Literal["object"] = "object"
+
+class BaseOrigin(SiteLinkedEntity):
+    ...
+
+class DetailOrigin(BaseOrigin):
+    profiles: list = []  # Poorly documented rubbish
+    character_set: Any | None # More Poorly documented rubbish
+    characters: list[BasicLinkedEntity] = []
+
+class SearchOrigin(BaseOrigin):
+    resource_type: Literal["origin"] = "origin"
+
+
+
+
+## Can potentially consolidate more.  Maybe a StoryElement base class, and a BookEntity base class?
 
 class BaseVolume(CoreEntityModel):
     aliases: str | None = None
@@ -196,19 +236,22 @@ class DetailVolume(BaseVolume):
     locations : list[dict] | None = None
     objects : list[dict] | None = None
 
-class VolumeResponse(CVResponse):
-    results: DetailVolume | list = []
+class SingleResponse[T](CVResponse):
+    results: T | list = []
 
-class VolumesResponse(CVResponse):
-    results: list[BaseVolume] = []
+class MultiResponse[T](CVResponse):
+    results: list[T] = []
 
 class SearchVolume(BaseVolume):
     resource_type: Literal["volume"] = "volume"
 
+# TODO: Refactor this to be created programatically?
 class SearchResponse(CVResponse):
     results: list[
         SearchVolume |
         SearchCharacter |
         SearchConcept |
         SearchIssue |
+        SearchObject |
+        SearchOrigin |
         CVResponse] = []
