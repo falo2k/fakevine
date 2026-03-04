@@ -1,4 +1,4 @@
-# ruff: noqa: D101
+# ruff: noqa: D101, FIX002
 from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field
@@ -110,7 +110,8 @@ class DetailConcept(BaseConcept):
     movies: list[SiteLinkedEntity] = []
     volume_credits: list[SiteLinkedEntity] = []
 
-# TODO: episode model
+# TODO@falo2k: episode model
+# https://github.com/falo2k/fakevine/issues/1
 
 class AssociatedImages(BaseModel):
     original_url: str | None
@@ -157,7 +158,8 @@ class DetailLocation(BaseLocation):
     story_arc_credits: list[SiteLinkedEntity] = []
     volume_credits: list[SiteLinkedEntity] = []
 
-# TODO: movies model
+# TODO@falo2k: movies model
+# https://github.com/falo2k/fakevine/issues/1
 
 class BaseObject(BaseEntity):
     count_of_issue_appearances: int
@@ -170,6 +172,7 @@ class DetailObject(BaseObject):
     story_arc_credits: list[SiteLinkedEntity] = []
     volume_credits: list[SiteLinkedEntity] = []
 
+# Note that BaseOrigin does not use the common entity base of other models
 class BaseOrigin(BaseModel):
     api_detail_url: str
     id: int
@@ -221,7 +224,8 @@ class DetailPublisher(BasePublisher):
     teams: list[SiteLinkedEntity] = []
     volumes: list[SiteLinkedEntity] = []
 
-# TODO: series model
+# TODO@falo2k: series model
+# https://github.com/falo2k/fakevine/issues/1
 
 class BaseStoryArc(BaseEntity):
     count_of_isssue_appearances: Annotated[int, "Yes, isssue.  You want to fight about it?"] | None
@@ -256,7 +260,8 @@ class BaseTypes(BaseModel):
     id: int
     list_resource_name: str
 
-# TODO: video* models
+# TODO@falo2k: video* models
+# https://github.com/falo2k/fakevine/issues/1
 
 class BaseVolume(BaseEntity):
     count_of_issues: int
@@ -316,4 +321,4 @@ class SearchResponse(CVResponse):
         SearchStoryArc |
         SearchTeam |
         SearchVolume |
-        CVResponse] = []
+        BaseEntity] = []
