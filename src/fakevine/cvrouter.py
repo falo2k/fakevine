@@ -4,6 +4,8 @@ from typing import TYPE_CHECKING, Annotated, Literal
 from fastapi import APIRouter, Query, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import HTMLResponse, JSONResponse, Response
+from loguru import logger
+from pydantic_core import ValidationError
 
 from fakevine.models.cvapimodels import CommonParams, CVResponse, FilterParams, SearchParams
 from fakevine.trunks.comic_trunk import (
@@ -162,9 +164,21 @@ class CVRouter:
                 data = trunk_method(params=params) if item_id is None else trunk_method(item_id=item_id, params=params)
             except (RateLimitError, AuthenticationError, RequestLimitError, GatewayError) as ex:
                 return self._exception_responses[type(ex)]
-            except UnsupportedResponseError:
+            except UnsupportedResponseError as ex:
+                error_msg = f"Response not handled: {ex}"
+                logger.error(error_msg)
                 exception_html = f'<html><title>Unsupported Feature</title><body>{traceback.format_exc()}</body></html>'
                 return HTMLResponse(status_code=status.HTTP_501_NOT_IMPLEMENTED, content=exception_html)
+            except ValidationError as ex:
+                for ex_error in ex.errors():
+                    error_loc = '->'.join(list(ex_error["loc"]))  # ty:ignore[no-matching-overload]
+                    input_summary = f"{str(ex_error["input"])[:100]}{' ...' if len(str(ex_error["input"])) > 100 else ''}"  # noqa: E501, PLR2004
+                    error_msg = f"{ex_error["msg"]}: {error_loc}: {input_summary}"
+                    logger.error(error_msg)
+                return JSONResponse(
+                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                    content=jsonable_encoder({"errors": ex.errors()}),
+                )
 
         return data
 

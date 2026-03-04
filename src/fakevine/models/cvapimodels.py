@@ -131,7 +131,6 @@ class BaseIssue(BaseModel):
     api_detail_url: str
     site_detail_url: str
     aliases: str | None = None
-    name: str | None
     cover_date: str | None
     date_added: str
     date_last_updated: str

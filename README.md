@@ -5,13 +5,15 @@ It is built on FastAPI and anger.
 
 Some responses are not exact copies - CV returns a webpage with some HTTP error codes that are not replicated as you should be using the status code.  There are also some documented CV endpoints that are intentionally not implemented for the backends as they are either not properly implemented on CV's end or just have junk data.  They should really be avoided by consumers, but if you must use them they are: /chat, /chats, /promo, /promos.
 
-The models are based on the CV API documentation, and analysing actual CV data.  You may notice that there are a lot of nullable fields in the CV response models.  These reflect the real state of CV data rather than an ideal view of what could be (e.g. the API will serve empty volumes).  At the time of writing, I've only done models for the comic elements in the API as that's where I believe most use comes from.
+The models are based on the CV API documentation, and analysing actual CV data.  You may notice that there are a lot of nullable fields in the CV response models.  These reflect the real state of CV data rather than an ideal view of what could be (e.g. the API will serve empty volumes).  At the time of writing, I've only done models for the comic elements in the API as that's where I believe most use comes from.  It's possible that some validation will fail because of some unforseen futzery in ComicVine's data (if using as a cache) - please do report any such issues you find!
 
 ## Features
 Current:
 - A single backend offering a simple sqlite backed cache for ComicVine
+- JSON responses only
 
 Planned:
+- Support for response types other than JSON
 - A backend to serve data from a SQLite database
 - A backend to serve data from a JSON file (mostly to support smaller test scenarios)
 - Configurable failure scenarios to force failures from certain API calls
