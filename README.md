@@ -1,11 +1,11 @@
 # FakeVine
-This is a ComicVine compatible API package that can serve comic metadata using the same endpoints provided by the [ComicVine API](https://comicvine.gamespot.com/api/documentation).  With an appropriate backend, it can act as a cache for ComicVine calls, a mock instance for testing comics applications, or a host for static data dumps.
+This is a ComicVine compatible API package that can serve comic metadata using the same endpoints provided by the [ComicVine API](https://comicvine.gamespot.com/api/documentation).  With an appropriate backend, it can act as a cache for ComicVine API calls, a mock instance for testing comics applications, or a host for serving from static data dumps.
 
-It is built on FastAPI, and the router can be added to an existing app.
+It is built on FastAPI and anger.
 
 Some responses are not exact copies - CV returns a webpage with some HTTP error codes that are not replicated as you should be using the status code.  There are also some documented CV endpoints that are intentionally not implemented for the backends as they are either not properly implemented on CV's end or just have junk data.  They should really be avoided by consumers, but if you must use them they are: /chat, /chats, /promo, /promos.
 
-You may also notice that there are a lot of nullable fields in the CV response models.  These reflect the real state of CV data rather than an ideal view of what could be (e.g. the API will serve empty volumes).
+The models are based on the CV API documentation, and analysing actual CV data.  You may notice that there are a lot of nullable fields in the CV response models.  These reflect the real state of CV data rather than an ideal view of what could be (e.g. the API will serve empty volumes).  At the time of writing, I've only done models for the comic elements in the API as that's where I believe most use comes from.
 
 ## Features
 Current:

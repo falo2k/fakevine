@@ -1,7 +1,7 @@
 # ruff: noqa: D101
-from typing import Any, Literal
+from typing import Annotated, Any, Literal, TypeVar
 
-from pydantic import BaseModel, Field, computed_field
+from pydantic import BaseModel, ConfigDict, Field, computed_field, create_model
 
 CV_STATUS_CODES: dict[int, str] = {
     1:      "OK",
@@ -35,6 +35,8 @@ class SearchParams(CommonParams):
 
 ## Response Models
 class CVResponse(BaseModel):
+    model_config = ConfigDict(extra='allow')
+
     @computed_field
     def error(self) -> str:  # noqa: D102
         return CV_STATUS_CODES.get(self.status_code, "Unrecognised status_code")
@@ -45,6 +47,12 @@ class CVResponse(BaseModel):
     status_code: Literal[1, 100, 101, 102, 103, 104, 105, 107] = 1
     results: list[dict] | dict = []
     version: str | None = "1.0"
+
+class SingleResponse[T](CVResponse):
+    results: T | list = []
+
+class MultiResponse[T](CVResponse):
+    results: list[T] = []
 
 class BasicLinkedEntity(BaseModel):
     api_detail_url: str
@@ -57,13 +65,11 @@ class LinkedIssue(BasicLinkedEntity):
 class SiteLinkedEntity(BasicLinkedEntity):
     site_detail_url: str
 
-class CoreEntityModel(BaseModel):
+class BaseCharacter(BaseModel):
     id: int
     name: str
     api_detail_url: str
     site_detail_url: str
-
-class BaseCharacter(CoreEntityModel):
     aliases: str | None = None
     birth: str | None
     count_of_issue_apperances: int = 0
@@ -92,10 +98,11 @@ class DetailCharacter(BaseCharacter):
     teams: list[SiteLinkedEntity] = []
     volume_credits: list[SiteLinkedEntity] = []
 
-class SearchCharacter(BaseCharacter):
-    resource_type: Literal["character"] = "character"
-
-class BaseConcept(CoreEntityModel):
+class BaseConcept(BaseModel):
+    id: int
+    name: str
+    api_detail_url: str
+    site_detail_url: str
     count_of_issue_apperances: int = 0
     date_added: str
     date_last_updated: str
@@ -110,9 +117,6 @@ class DetailConcept(BaseConcept):
     movies: list[SiteLinkedEntity] = []
     volume_credits: list[SiteLinkedEntity] = []
 
-class SearchConcept(BaseConcept):
-    resource_type: Literal["concept"] = "concept"
-
 # TODO: episode model
 
 class AssociatedImages(BaseModel):
@@ -121,7 +125,11 @@ class AssociatedImages(BaseModel):
     caption: str | None
     image_tags: str | None
 
-class BaseIssue(CoreEntityModel):
+class BaseIssue(BaseModel):
+    id: int
+    name: str
+    api_detail_url: str
+    site_detail_url: str
     aliases: str | None = None
     name: str | None
     cover_date: str | None
@@ -156,10 +164,11 @@ class DetailIssue(BaseIssue):
     team_credits: list[SiteLinkedEntity] = []
     team_disbanded_in: list[SiteLinkedEntity] = []
 
-class SearchIssue(BaseIssue):
-    resource_type: Literal["issue"] = "issue"
-
-class BaseLocation(CoreEntityModel):
+class BaseLocation(BaseModel):
+    id: int
+    name: str
+    api_detail_url: str
+    site_detail_url: str
     aliases: str | None = None
     count_of_issue_appearances: int
     date_added: str
@@ -176,12 +185,13 @@ class DetailLocation(BaseLocation):
     story_arc_credits: list[SiteLinkedEntity] = []
     volume_credits: list[SiteLinkedEntity] = []
 
-class SearchLocation(BaseLocation):
-    resource_type: Literal["location"] = "location"
-
 # TODO: movies model
 
-class BaseObject(CoreEntityModel):
+class BaseObject(BaseModel):
+    id: int
+    name: str
+    api_detail_url: str
+    site_detail_url: str
     aliases: str | None = None
     count_of_issue_appearances: int
     date_added: str
@@ -198,26 +208,143 @@ class DetailObject(BaseObject):
     story_arc_credits: list[SiteLinkedEntity] = []
     volume_credits: list[SiteLinkedEntity] = []
 
-class SearchObject(BaseObject):
-    resource_type: Literal["object"] = "object"
-
-class BaseOrigin(SiteLinkedEntity):
-    ...
+class BaseOrigin(BaseModel):
+    api_detail_url: str
+    id: int
+    name: str | None
+    site_detail_url: str
 
 class DetailOrigin(BaseOrigin):
     profiles: list = []  # Poorly documented rubbish
     character_set: Any | None # More Poorly documented rubbish
     characters: list[BasicLinkedEntity] = []
 
-class SearchOrigin(BaseOrigin):
-    resource_type: Literal["origin"] = "origin"
+class CVDate(BaseModel):
+    date: Annotated[str, "Seems to take a date string in the form YYYY-MM-DD hh:mm:ss.ffffff"]
+    timezone: Annotated[str, "e.g. America/Los_Angeles"]
+    timezone_type: Annotated[Literal[3], "Can't find evidence of any other value than 3 here"] = 3
 
+class BasePerson(BaseModel):
+    aliases: str | None = None
+    api_detail_url: str
+    date_added: str
+    date_last_updated: str
+    id: int
+    name: str
+    count_of_isssue_appearances: Annotated[int, "Yes, isssue.  You want to fight about it?"] | None
+    site_detail_url: str
+    birth: Annotated[str, "Seems to take a date string in the form YYYY-MM-DD hh:mm:ss"] | None
+    country: str | None
+    death: Annotated[CVDate, "Of course this is an entirely different format to birth.  Of course it is."] | None
+    deck: str | None
+    description: str | None
+    email: str | None = None
+    gender: Annotated[int, "0: Unknown, 1: Male, 2 or 3: Female"] | None
+    hometown: str | None
+    image: dict[str, str | None] | None
+    website: str | None
 
+class DetailPerson(BasePerson):
+    created_characters: list[SiteLinkedEntity] = []
+    issues: list[SiteLinkedEntity] = []
+    story_arc_credits: list[SiteLinkedEntity] = []
+    volume_credits: list[SiteLinkedEntity] = []
 
+class BasePower(BaseModel):
+    aliases: str | None = None
+    api_detail_url: str
+    date_added: str
+    date_last_updated: str
+    id: int
+    name: str
+    description: str | None
+    site_detail_url: str
 
-## Can potentially consolidate more.  Maybe a StoryElement base class, and a BookEntity base class?
+class DetailPower(BasePower):
+    characters: list[SiteLinkedEntity] = []
 
-class BaseVolume(CoreEntityModel):
+class BasePublisher(BaseModel):
+    aliases: str | None = None
+    api_detail_url: str
+    date_added: str
+    date_last_updated: str
+    id: int
+    name: str
+    description: str | None
+    site_detail_url: str
+    image: dict[str, str | None] | None
+    location_address: str | None
+    location_city:  str | None
+    location_state:  str | None
+
+class DetailPublisher(BasePublisher):
+    characters: list[SiteLinkedEntity] = []
+    story_arcs: list[SiteLinkedEntity] = []
+    teams: list[SiteLinkedEntity] = []
+    volumes: list[SiteLinkedEntity] = []
+
+# TODO: series model
+
+class BaseStoryArc(BaseModel):
+    aliases: str | None = None
+    api_detail_url: str
+    site_detail_url: str
+    count_of_isssue_appearances: Annotated[int, "Yes, isssue.  You want to fight about it?"] | None
+    deck: str | None
+    date_added: str
+    date_last_updated: str
+    id: int
+    name: str
+    description: str | None
+    first_appeared_in_issue: LinkedIssue | None
+    first_appeared_in_episode: dict[str,Any] | None
+    image: dict[str, str | None] | None
+    publisher: SiteLinkedEntity | None
+
+class DetailStoryArc(BaseStoryArc):
+    episodes: list[SiteLinkedEntity] = []
+    issues: list[SiteLinkedEntity] = []
+    movies: list[SiteLinkedEntity] = []
+
+class BaseTeam(BaseModel):
+    aliases: str | None = None
+    api_detail_url: str
+    site_detail_url: str
+    count_of_isssue_appearances: Annotated[int, "Yes, isssue.  You want to fight about it?"] | None
+    count_of_team_members: int
+    deck: str | None
+    description: str | None
+    date_added: str
+    date_last_updated: str
+    id: int
+    name: str
+    first_appeared_in_issue: LinkedIssue | None
+    image: dict[str, str | None] | None
+    publisher: BasicLinkedEntity | None
+
+class DetailTeam(BaseTeam):
+    character_enemies: list[SiteLinkedEntity] = []
+    character_friends: list[SiteLinkedEntity] = []
+    characters: list[SiteLinkedEntity] = []
+    disbanded_in_issues: list[SiteLinkedEntity] = []
+    isssues_disbanded_in: Annotated[list[SiteLinkedEntity], "Yes, isssues again."] = []
+    issue_credits: list[SiteLinkedEntity] = []
+    movies: list[SiteLinkedEntity] = []
+    story_arc_credits: list[SiteLinkedEntity] = []
+    volume_credits: list[SiteLinkedEntity] = []
+
+class BaseTypes(BaseModel):
+    detail_resource_name: str
+    list_resource_name: str
+    id: int
+
+# TODO: video* models
+
+class BaseVolume(BaseModel):
+    id: int
+    name: str
+    api_detail_url: str
+    site_detail_url: str
     aliases: str | None = None
     count_of_issues: int
     date_added: str
@@ -236,22 +363,49 @@ class DetailVolume(BaseVolume):
     locations : list[dict] | None = None
     objects : list[dict] | None = None
 
-class SingleResponse[T](CVResponse):
-    results: T | list = []
+class SearchCharacter(BaseCharacter):
+    resource_type: Literal["character"] = "character"
 
-class MultiResponse[T](CVResponse):
-    results: list[T] = []
+class SearchConcept(BaseConcept):
+    resource_type: Literal["concept"] = "concept"
+
+class SearchIssue(BaseIssue):
+    resource_type: Literal["issue"] = "issue"
+
+class SearchLocation(BaseLocation):
+    resource_type: Literal["location"] = "location"
+
+class SearchObject(BaseObject):
+    resource_type: Literal["object"] = "object"
+
+class SearchOrigin(BaseOrigin):
+    resource_type: Literal["origin"] = "origin"
+
+class SearchPerson(BasePerson):
+    resource_type: Literal["person"] = "person"
 
 class SearchVolume(BaseVolume):
     resource_type: Literal["volume"] = "volume"
 
-# TODO: Refactor this to be created programatically?
+class SearchPublisher(BasePublisher):
+    resource_type: Literal["publisher"] = "publisher"
+
+class SearchStoryArc(BaseStoryArc):
+    resource_type: Literal["story_arc"] = "story_arc"
+
+class SearchTeam(BaseTeam):
+    resource_type: Literal["team"] = "team"
+
 class SearchResponse(CVResponse):
     results: list[
-        SearchVolume |
         SearchCharacter |
         SearchConcept |
         SearchIssue |
         SearchObject |
         SearchOrigin |
+        SearchPerson |
+        SearchPublisher |
+        SearchStoryArc |
+        SearchTeam |
+        SearchVolume |
         CVResponse] = []

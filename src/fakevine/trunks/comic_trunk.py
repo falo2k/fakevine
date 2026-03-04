@@ -106,27 +106,27 @@ class ComicTrunk(ABC):
         ...
 
     @abstractmethod
-    def person(self, item_id: str, params: CommonParams) -> CVResponse:
+    def person(self, item_id: str, params: CommonParams) -> SingleResponse[DetailPerson]:
         ...
 
     @abstractmethod
-    def people(self, params: CommonParams) -> CVResponse:
+    def people(self, params: CommonParams) -> MultiResponse[BasePerson]:
         ...
 
     @abstractmethod
-    def power(self, item_id: str, params: CommonParams) -> CVResponse:
+    def power(self, item_id: str, params: CommonParams) -> SingleResponse[DetailPower]:
         ...
 
     @abstractmethod
-    def powers(self, params: CommonParams) -> CVResponse:
+    def powers(self, params: CommonParams) -> MultiResponse[BasePower]:
         ...
 
     @abstractmethod
-    def publisher(self, item_id: str, params: CommonParams) -> CVResponse:
+    def publisher(self, item_id: str, params: CommonParams) -> SingleResponse[DetailPublisher]:
         ...
 
     @abstractmethod
-    def publishers(self, params: CommonParams) -> CVResponse:
+    def publishers(self, params: CommonParams) -> MultiResponse[BasePublisher]:
         ...
 
     @abstractmethod
@@ -138,19 +138,19 @@ class ComicTrunk(ABC):
         ...
 
     @abstractmethod
-    def story_arc(self, item_id: str, params: CommonParams) -> CVResponse:
+    def story_arc(self, item_id: str, params: CommonParams) -> SingleResponse[DetailStoryArc]:
         ...
 
     @abstractmethod
-    def story_arcs(self, params: CommonParams) -> CVResponse:
+    def story_arcs(self, params: CommonParams) -> MultiResponse[BaseStoryArc]:
         ...
 
     @abstractmethod
-    def team(self, item_id: str, params: CommonParams) -> CVResponse:
+    def team(self, item_id: str, params: CommonParams) -> SingleResponse[DetailTeam]:
         ...
 
     @abstractmethod
-    def teams(self, params: CommonParams) -> CVResponse:
+    def teams(self, params: CommonParams) -> MultiResponse[BaseTeam]:
         ...
 
     @abstractmethod
@@ -177,8 +177,8 @@ class ComicTrunk(ABC):
     def video_categories(self, params: CommonParams) -> CVResponse:
         ...
 
-    def types(self, params: CommonParams) -> CVResponse:  # noqa: ARG002
-        return CVResponse.model_validate_json(
+    def types(self, params: CommonParams) -> MultiResponse[BaseTypes]:  # noqa: ARG002
+        return MultiResponse[BaseTypes].model_validate_json(
             json_data= '''
             {
                 "error": "OK",
