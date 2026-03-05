@@ -20,6 +20,7 @@ Planned:
 - Support remapping API URLs in responses to the FakeVine route 
 - Host a static folder for cover caching
 - Docker image
+- Healthcheck for the router and trunks, primarily for Docker to monitor
 
 ## Running The App
 Launch the app using [uv](https://docs.astral.sh/uv/) with `uv run fakevine`.  If you have not set any environment variables, you can pass a dotEnv file by running `uv run --env-file .env`.  See `.env.example` for details of available options.  At minimum you should define a CV API key for the cache to use.  The cache defaults to a 1 day expiry.
@@ -63,3 +64,8 @@ def main():
 if __name__ == "__main__":
     main()
 ```
+
+## Contributing
+Contributions are welcome, but I'd suggest reaching out before starting anything large.  Contributions that are entirely or majority AI generated (both code and documentation) will likely be rejected.   You can find me on the [CBL-ReadingLists discord](https://discord.gg/DQmHfzFdGG). 
+
+Any commits should be done using [commitizen](https://commitizen-tools.github.io/commitizen/) by running `uv run cz c`.  Consider squashing before submitting a PR if you have a scrappy commit history.

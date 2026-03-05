@@ -1,7 +1,7 @@
 [project]
 name = "fakevine"
 version = "0.1.0"
-description = "Add your description here"
+description = "A ComicVine API compatible FastAPI router"
 readme = "README.md"
 authors = [
     { name = "falo2k", email = "1392563+falo2k@users.noreply.github.com" }
