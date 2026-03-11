@@ -17,26 +17,6 @@ def main() -> None:
     """
     app = FastAPI()
 
-    for handler in logging.root.handlers[:]:
-        logging.root.removeHandler(handler)
-
-    # Intercept standard logging
-    logging.basicConfig(handlers=[InterceptHandler()], level=logging.INFO)
-
-    loggers = (
-        "uvicorn",
-        "uvicorn.access",
-        "uvicorn.error",
-        "fastapi",
-        "asyncio",
-        "starlette",
-    )
-
-    for logger_name in loggers:
-        logging_logger = logging.getLogger(logger_name)
-        logging_logger.handlers = []
-        logging_logger.propagate = True
-
     try:
         cache_expiry = int(os.environ.get("CACHE_EXPIRY_SECONDS"))  # ty:ignore[invalid-argument-type]
     except (ValueError, TypeError):
@@ -64,8 +44,29 @@ def main() -> None:
         log_level=None,
         )
 
+def log_interception() -> None:  # noqa: D103
+    for handler in logging.root.handlers[:]:
+        logging.root.removeHandler(handler)
+
+    # Intercept standard logging
+    logging.basicConfig(handlers=[InterceptHandler()], level=logging.INFO)
+
+    loggers = (
+        "uvicorn",
+        "uvicorn.access",
+        "uvicorn.error",
+        "fastapi",
+        "asyncio",
+        "starlette",
+    )
+
+    for logger_name in loggers:
+        logging_logger = logging.getLogger(logger_name)
+        logging_logger.handlers = []
+        logging_logger.propagate = True
+
 class InterceptHandler(logging.Handler):  # noqa: D101
-    def emit(self, record) -> None:  # noqa: D102
+    def emit(self, record) -> None:  # noqa: ANN001, D102
         # Get corresponding Loguru level
         try:
             level = logger.level(record.levelname).name
@@ -79,6 +80,6 @@ class InterceptHandler(logging.Handler):  # noqa: D101
             depth += 1
 
         logger.opt(depth=depth, exception=record.exc_info).log(
-            level, record.getMessage()
+            level, record.getMessage(),
         )
 

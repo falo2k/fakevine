@@ -15,3 +15,4 @@ wheels/
 *.sqlite-shm
 *.sqlite-wal
 .vscode
+*.db

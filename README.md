@@ -3,7 +3,7 @@ This is a ComicVine compatible API package that can serve comic metadata using t
 
 It is built on FastAPI and anger.
 
-Some responses are not exact copies - CV returns a webpage with some HTTP error codes that are not replicated as you should be using the status code.  There are also some documented CV endpoints that are intentionally not implemented for the backends as they are either not properly implemented on CV's end or just have junk data.  They should really be avoided by consumers, but if you must use them they are: /chat, /chats, /promo, /promos.
+Some responses are not exact copies - CV returns a webpage with some HTTP error codes that are not replicated as you should be using the status code.  There are also some documented CV endpoints that are intentionally not implemented for the backends as they are either not properly implemented on CV's end or just have junk data.  They should really be avoided by consumers and will return bad responses.  These are `/chat`, `/chats`, `/promo`, & `/promos`.
 
 The models are based on the CV API documentation, and analysing actual CV data.  You may notice that there are a lot of nullable fields in the CV response models.  These reflect the real state of CV data rather than an ideal view of what could be (e.g. the API will serve empty volumes).  At the time of writing, I've only done models for the comic elements in the API as that's where I believe most use comes from.  It's possible that some validation will fail because of some unforseen futzery in ComicVine's data (if using as a cache) - please do report any such issues you find!
 
@@ -66,6 +66,6 @@ if __name__ == "__main__":
 ```
 
 ## Contributing
-Contributions are welcome, but I'd suggest reaching out before starting anything large.  Contributions that are entirely or majority AI generated (both code and documentation) will likely be rejected.   You can find me on the [CBL-ReadingLists discord](https://discord.gg/DQmHfzFdGG). 
+Contributions will be welcome once I've got the core finished, but I'd suggest reaching out before starting anything large.  Contributions that are entirely or majority AI generated (both code and documentation) will likely be rejected.   You can find me on the [CBL-ReadingLists discord](https://discord.gg/DQmHfzFdGG). 
 
 Any commits should be done using [commitizen](https://commitizen-tools.github.io/commitizen/) by running `uv run cz c`.  Consider squashing before submitting a PR if you have a scrappy commit history.

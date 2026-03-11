@@ -18,12 +18,12 @@ CV_STATUS_CODES: dict[int, str] = {
 class CommonParams(BaseModel):
     api_key: str | None = None
     format: Literal['json', 'xml', 'jsonp'] = 'json'
-    field_list: list[str] | None = None
+    field_list: Annotated[list[str], "Comma delimited list of fields"] | None = None
 
 class FilterParams(CommonParams):
     limit: int = Field(100, gt=0, le=100)
     offset: int = Field(0, ge=0)
-    sort: str | None = "id:asc"
+    sort: Annotated[str, "Sort by field and direction (asc/desc) in the format field:asc"] | None = "id:asc"
     filter: str | None = None
 
 class SearchParams(CommonParams):
@@ -68,8 +68,8 @@ class SiteLinkedEntity(BasicLinkedEntity):
 class BaseEntity(BaseModel):
     aliases: str | None = None
     api_detail_url: str
-    date_added: str
-    date_last_updated: str
+    date_added: Annotated[str, "Date format is %Y-%m-%d %H:%M:%S - Data is UTC-7/8 (PDT/PST depending on time of year)"]  # noqa: E501
+    date_last_updated: Annotated[str, "Date format is %Y-%m-%d %H:%M:%S - Data is UTC-7/8 (PDT/PST depending on time of year)"]  # noqa: E501
     deck: str | None = None
     description: str | None = None
     id: int
@@ -78,7 +78,7 @@ class BaseEntity(BaseModel):
     site_detail_url: str
 
 class BaseCharacter(BaseEntity):
-    birth: Annotated[str, "Seems to take a date string in the form YYYY-MM-DD hh:mm:ss"] | None
+    birth: Annotated[str, "Date string in the form %Y-%m-%d %H:%M:%S"] | None
     count_of_issue_apperances: int = 0
     first_appeared_in_issue: LinkedIssue | None
     gender: int | None
@@ -185,12 +185,12 @@ class DetailOrigin(BaseOrigin):
     characters: list[BasicLinkedEntity] = []
 
 class CVDate(BaseModel):
-    date: Annotated[str, "Seems to take a date string in the form YYYY-MM-DD hh:mm:ss.ffffff"]
+    date: Annotated[str, "Date string in the form %Y-%m-%d %H:%M:%S.%f"]
     timezone: Annotated[str, "e.g. America/Los_Angeles"]
     timezone_type: Annotated[Literal[3], "Can't find evidence of any other value than 3 here"] = 3
 
 class BasePerson(BaseEntity):
-    birth: Annotated[str, "Seems to take a date string in the form YYYY-MM-DD hh:mm:ss"] | None
+    birth: Annotated[str, "Date string in the form %Y-%m-%d %H:%M:%S"] | None
     country: str | None
     count_of_isssue_appearances: Annotated[int, "Yes, isssue.  You want to fight about it?"] | None
     death: Annotated[CVDate, "Of course this is an entirely different format to birth.  Of course it is."] | None
