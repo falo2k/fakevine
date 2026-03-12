@@ -55,9 +55,19 @@ class MultiResponse[T](CVResponse):
     results: list[T] = []
 
 class BasicLinkedEntity(BaseModel):
+    class Config:  # noqa: D106
+        allow_mutation = False
+
     api_detail_url: str
     id: int
     name: str | None
+
+    # Equality and Hash functions defined for quick deduplication of references
+    def __eq__(self, other: BasicLinkedEntity) -> bool:  # noqa: D105
+        return self.id == other.id
+
+    def __hash__(self) -> int:  # noqa: D105
+        return self.id
 
 class LinkedIssue(BasicLinkedEntity):
     issue_number: str | None

@@ -36,7 +36,7 @@ class BaseEntity(BaseTable):
     date_last_updated: Mapped[datetime.datetime] = mapped_column(sort_order=-151)
     deck: Mapped[str | None] = mapped_column(sort_order=-100)
     description: Mapped[str | None] = mapped_column(sort_order=-90)
-    image: Mapped[dict[str,str | None] | None] = mapped_column(JSON, sort_order=-80)
+    image: Mapped[dict[str,str | None] | None] = mapped_column(JSON(none_as_null=True), sort_order=-80)
 
 class Character(BaseEntity, Base):
     birth: Mapped[datetime.date | None]
@@ -44,7 +44,6 @@ class Character(BaseEntity, Base):
     origin_id: Mapped[int | None]
     publisher_id: Mapped[int | None]
     real_name: Mapped[str | None]
-
 
 # No constraints, but assumes that id <= enemy_id and is symmetrical.
 class CharacterEnemy(Base):

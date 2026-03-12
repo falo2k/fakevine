@@ -11,7 +11,7 @@ dependencies = [
     "fastapi>=0.134.0",
     "loguru>=0.7.3",
     "requests-cache>=1.3.0",
-    "sqlalchemy>=2.0.48",
+    "sqlalchemy>=2.1.0b1",
     "typer>=0.24.1",
     "uvicorn>=0.41.0",
 ]

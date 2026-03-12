@@ -1,58 +1,91 @@
 # ruff: noqa: D103
 import datetime
-from enum import unique
+from enum import Enum
 from typing import Any
 from zoneinfo import ZoneInfo
 
 from fakevine.models import cvapimodels, cvdbmodels
 
 
+class AssociatedEntities(Enum):
+    """Enum to choose how helper functions deal with association data."""
+
+    NONE = 0
+    MASTERED = 1
+    ALL = 2
+
 # Parsing functions for converting from a detailed API response DB ORM model instances
-# For association tables, these are sourced by default from the entity that they
-# are primarily linked against.  This is optional as CV does not cascade timestamp updates to
-# associated entities, so order of processing may be important (i.e. process all responses by date)
-# TODO@falo2k: Implement the optional associations through their associated entities.  May need /
-# to confirm which can be edited from both ends and tweak their placement.  Might work better /
-# as an enum of None, Mastered, All on each helper function
-def parse_person_response(api_response: str) -> list[cvdbmodels.Person]:
+# For association tables where edits can be done in the wiki from both entities, these are updated
+# by default from the "main" parent entity.  CV does not cascade timestamp updates to associated entities,
+# so order of processing may be important (i.e. process all responses by date)
+# Expensive set based uniqueness checks are in place because the data can be awful, and a good output
+# is more important than a quick output.
+def parse_person_response(api_response: str) -> list[cvdbmodels.Base]:
     api_object = cvapimodels.DetailPerson.model_validate_json(api_response)
     db_object = cvdbmodels.Person(
         birth=parse_cv_datetime(api_object.birth),
         **api_object.model_dump(include={'email','gender','country','death','hometown','website'}),
         **select_common_fields(api_object),
     )
-    return [db_object]
+    output: list[cvdbmodels.Base] = [db_object]
 
-def parse_object_reponse(api_response: str) -> list[cvdbmodels.Object]:
+    # No associations editable on page
+
+    return output
+
+def parse_object_reponse(api_response: str) -> list[cvdbmodels.Base]:
     api_object = cvapimodels.DetailObject.model_validate_json(api_response)
     db_object = cvdbmodels.Object(**select_common_fields(api_object))
-    return [db_object]
+    output: list[cvdbmodels.Base] = [db_object]
 
-def parse_concept_reponse(api_response: str) -> list[cvdbmodels.Concept]:
+    # No associations editable on page
+
+    return output
+
+def parse_concept_reponse(api_response: str) -> list[cvdbmodels.Base]:
     api_object = cvapimodels.DetailConcept.model_validate_json(api_response)
     db_object = cvdbmodels.Concept(**select_common_fields(api_object))
-    return [db_object]
+    output: list[cvdbmodels.Base] = [db_object]
 
-def parse_location_reponse(api_response: str) -> list[cvdbmodels.Location]:
+    # No associations editable on page
+
+    return output
+
+def parse_location_reponse(api_response: str) -> list[cvdbmodels.Base]:
     api_object = cvapimodels.DetailLocation.model_validate_json(api_response)
     db_object = cvdbmodels.Location(**select_common_fields(api_object))
-    return [db_object]
+    output: list[cvdbmodels.Base] = [db_object]
 
-def parse_power_reponse(api_response: str) -> list[cvdbmodels.Power]:
+    # No associations editable on page
+
+    return output
+
+def parse_power_reponse(api_response: str, associations: AssociatedEntities = AssociatedEntities.NONE) -> list[cvdbmodels.Base]:
     api_object = cvapimodels.DetailPower.model_validate_json(api_response)
     db_object = cvdbmodels.Power(
         **{k:v for k,v in select_common_fields(api_object).items() if k not in ['deck', 'image']})
-    return [db_object]
+    output: list[cvdbmodels.Base] = [db_object]
 
-def parse_publisher_reponse(api_response: str) -> list[cvdbmodels.Publisher]:
+    if associations == AssociatedEntities.ALL:
+        for entity in set(api_object.characters):
+            db_object= cvdbmodels.CharacterPower(power_id=api_object.id, character_id=entity.id)
+            output.append(db_object)
+
+    return output
+
+def parse_publisher_reponse(api_response: str) -> list[cvdbmodels.Base]:
     api_object = cvapimodels.DetailPublisher.model_validate_json(api_response)
     db_object = cvdbmodels.Publisher(
         **api_object.model_dump(include={'location_address','location_city','location_state'}),
         **select_common_fields(api_object),
     )
-    return [db_object]
+    output: list[cvdbmodels.Base] = [db_object]
 
-def parse_character_reponse(api_response: str, *, include_associations: bool = True) -> list[cvdbmodels.Base]:  # noqa: C901
+    # No associations can be driven from the publisher editing.
+
+    return output
+
+def parse_character_reponse(api_response: str, associations: AssociatedEntities = AssociatedEntities.MASTERED) -> list[cvdbmodels.Base]:  # noqa: C901
     output = []
 
     api_object = cvapimodels.DetailCharacter.model_validate_json(api_response)
@@ -65,46 +98,45 @@ def parse_character_reponse(api_response: str, *, include_associations: bool = T
     )
     output.append(db_object)
 
-    # The uniqueness checks are a pain, but CV data is "mature"
-    if include_associations:
-        uniqueness_check=set()
-        for enemy in api_object.character_enemies:
-            if api_object.id <= enemy.id and enemy.id not in uniqueness_check:
-                uniqueness_check.add(enemy.id)
+    if associations in [AssociatedEntities.ALL, AssociatedEntities.MASTERED]:
+        for enemy in set(api_object.character_enemies):
+            if api_object.id <= enemy.id:
                 enemy_object = cvdbmodels.CharacterEnemy(character_id=api_object.id, enemy_id=enemy.id)
                 output.append(enemy_object)
 
-        uniqueness_check=set()
-        for friend in api_object.character_friends:
-            if api_object.id <= friend.id and friend.id not in uniqueness_check:
-                uniqueness_check.add(friend.id)
+        for friend in set(api_object.character_friends):
+            if api_object.id <= friend.id:
                 enemy_object = cvdbmodels.CharacterFriend(character_id=api_object.id, friend_id=friend.id)
                 output.append(enemy_object)
 
-        uniqueness_check=set()
-        for creator in api_object.creators:
-            if creator.id not in uniqueness_check:
-                uniqueness_check.add(creator.id)
-                creator_object = cvdbmodels.CharacterCreator(character_id=api_object.id, person_id=creator.id)
-                output.append(creator_object)
+        for creator in set(api_object.creators):
+            creator_object = cvdbmodels.CharacterCreator(character_id=api_object.id, person_id=creator.id)
+            output.append(creator_object)
 
-        uniqueness_check=set()
-        for death_issue in api_object.issues_died_in:
-            if death_issue.id not in uniqueness_check:
-                uniqueness_check.add(death_issue.id)
-                issue_object = cvdbmodels.CharacterIssueDied(character_id=api_object.id, issue_id=death_issue.id)
-                output.append(issue_object)
+        for death_issue in set(api_object.issues_died_in):
+            issue_object = cvdbmodels.CharacterIssueDied(character_id=api_object.id, issue_id=death_issue.id)
+            output.append(issue_object)
 
-        uniqueness_check=set()
-        for power in api_object.powers:
-            if power.id not in uniqueness_check:
-                uniqueness_check.add(power.id)
-                power_object = cvdbmodels.CharacterPower(character_id=api_object.id, power_id=power.id)
-                output.append(power_object)
+        for power in set(api_object.powers):
+            power_object = cvdbmodels.CharacterPower(character_id=api_object.id, power_id=power.id)
+            output.append(power_object)
+
+    if associations == AssociatedEntities.ALL:
+        for entity in set(api_object.teams):
+            db_object = cvdbmodels.TeamCharacterMember(character_id=api_object.id, team_id=entity.id)
+            output.append(db_object)
+
+        for entity in set(api_object.team_enemies):
+            db_object = cvdbmodels.TeamCharacterEnemy(character_id=api_object.id, team_id=entity.id)
+            output.append(db_object)
+
+        for entity in set(api_object.team_friends):
+            db_object = cvdbmodels.TeamCharacterFriend(character_id=api_object.id, team_id=entity.id)
+            output.append(db_object)
 
     return output
 
-def parse_team_reponse(api_response: str, *, include_associations: bool = True) -> list[cvdbmodels.Base]:
+def parse_team_reponse(api_response: str, associations: AssociatedEntities = AssociatedEntities.MASTERED) -> list[cvdbmodels.Base]:
     output = []
 
     api_object = cvapimodels.DetailTeam.model_validate_json(api_response)
@@ -114,38 +146,26 @@ def parse_team_reponse(api_response: str, *, include_associations: bool = True) 
     )
     output.append(db_object)
 
-    if include_associations:
-        uniqueness_check=set()
-        for enemy in api_object.character_enemies:
-            if enemy.id not in uniqueness_check:
-                uniqueness_check.add(enemy.id)
-                enemy_object = cvdbmodels.TeamCharacterEnemy(team_id=api_object.id, character_id=enemy.id)
-                output.append(enemy_object)
+    if associations in [AssociatedEntities.ALL, AssociatedEntities.MASTERED]:
+        for enemy in set(api_object.character_enemies):
+            enemy_object = cvdbmodels.TeamCharacterEnemy(team_id=api_object.id, character_id=enemy.id)
+            output.append(enemy_object)
 
-        uniqueness_check=set()
-        for friend in api_object.character_friends:
-            if friend.id not in uniqueness_check:
-                uniqueness_check.add(friend.id)
-                friend_object = cvdbmodels.TeamCharacterFriend(team_id=api_object.id, character_id=friend.id)
-                output.append(friend_object)
+        for friend in set(api_object.character_friends):
+            friend_object = cvdbmodels.TeamCharacterFriend(team_id=api_object.id, character_id=friend.id)
+            output.append(friend_object)
 
-        uniqueness_check=set()
-        for character in api_object.characters:
-            if character.id not in uniqueness_check:
-                uniqueness_check.add(character.id)
-                character_object = cvdbmodels.TeamCharacterMember(team_id=api_object.id, character_id=character.id)
-                output.append(character_object)
+        for character in set(api_object.characters):
+            character_object = cvdbmodels.TeamCharacterMember(team_id=api_object.id, character_id=character.id)
+            output.append(character_object)
 
-        uniqueness_check=set()
-        for issue in api_object.isssues_disbanded_in:
-            if issue.id not in uniqueness_check:
-                uniqueness_check.add(issue.id)
-                issue_object = cvdbmodels.TeamIssueDisbanded(team_id=api_object.id, issue_id=issue.id)
-                output.append(issue_object)
+        for issue in set(api_object.isssues_disbanded_in):
+            issue_object = cvdbmodels.TeamIssueDisbanded(team_id=api_object.id, issue_id=issue.id)
+            output.append(issue_object)
 
     return output
 
-def parse_volume_reponse(api_response: str) -> list[cvdbmodels.Volume]:
+def parse_volume_reponse(api_response: str) -> list[cvdbmodels.Base]:
     output = []
 
     api_object = cvapimodels.DetailVolume.model_validate_json(api_response)
@@ -156,9 +176,11 @@ def parse_volume_reponse(api_response: str) -> list[cvdbmodels.Volume]:
     )
     output.append(db_object)
 
+    # No associations can be driven from the publisher editing.
+
     return output
 
-def parse_storyarc_reponse(api_response: str) -> list[cvdbmodels.Base]:
+def parse_storyarc_reponse(api_response: str, associations: AssociatedEntities = AssociatedEntities.NONE) -> list[cvdbmodels.Base]:
     output = []
 
     api_object = cvapimodels.DetailStoryArc.model_validate_json(api_response)
@@ -168,9 +190,14 @@ def parse_storyarc_reponse(api_response: str) -> list[cvdbmodels.Base]:
     )
     output.append(db_object)
 
+    if associations == AssociatedEntities.ALL:
+        for entity in set(api_object.issues):
+            db_object = cvdbmodels.StoryArcIssue(storyarc_id=api_object.id, issue_id=entity.id)
+            output.append(db_object)
+
     return output
 
-def parse_issue_reponse(api_response: str, *, include_associations: bool = True) -> list[cvdbmodels.Base]:
+def parse_issue_reponse(api_response: str, associations: AssociatedEntities = AssociatedEntities.MASTERED) -> list[cvdbmodels.Base]:
     output = []
 
     api_object = cvapimodels.DetailIssue.model_validate_json(api_response)
@@ -194,55 +221,34 @@ def parse_issue_reponse(api_response: str, *, include_associations: bool = True)
             )
             output.append(db_object)
 
-    if include_associations:
-        uniqueness_check=set()
-        for credit in api_object.character_credits:
-            if credit.id not in uniqueness_check:
-                uniqueness_check.add(credit.id)
-                db_object = cvdbmodels.IssueCharacter(issue_id=api_object.id, character_id=credit.id)
-                output.append(db_object)
+    if associations in [AssociatedEntities.ALL, AssociatedEntities.MASTERED]:
+        for credit in set(api_object.character_credits):
+            db_object = cvdbmodels.IssueCharacter(issue_id=api_object.id, character_id=credit.id)
+            output.append(db_object)
 
-        uniqueness_check=set()
-        for credit in api_object.concept_credits:
-            if credit.id not in uniqueness_check:
-                uniqueness_check.add(credit.id)
-                db_object = cvdbmodels.IssueConcept(issue_id=api_object.id, concept_id=credit.id)
-                output.append(db_object)
+        for credit in set(api_object.concept_credits):
+            db_object = cvdbmodels.IssueConcept(issue_id=api_object.id, concept_id=credit.id)
+            output.append(db_object)
 
-        uniqueness_check=set()
-        for credit in api_object.location_credits:
-            if credit.id not in uniqueness_check:
-                uniqueness_check.add(credit.id)
-                db_object = cvdbmodels.IssueLocation(issue_id=api_object.id, location_id=credit.id)
-                output.append(db_object)
+        for credit in set(api_object.location_credits):
+            db_object = cvdbmodels.IssueLocation(issue_id=api_object.id, location_id=credit.id)
+            output.append(db_object)
 
-        uniqueness_check=set()
-        for credit in api_object.object_credits:
-            if credit.id not in uniqueness_check:
-                uniqueness_check.add(credit.id)
-                db_object = cvdbmodels.IssueObject(issue_id=api_object.id, object_id=credit.id)
-                output.append(db_object)
+        for credit in set(api_object.object_credits):
+            db_object = cvdbmodels.IssueObject(issue_id=api_object.id, object_id=credit.id)
+            output.append(db_object)
 
-        uniqueness_check=set()
-        for credit in api_object.person_credits:
-            if credit.id not in uniqueness_check:
-                uniqueness_check.add(credit.id)
-                db_object = cvdbmodels.IssueCredit(issue_id=api_object.id, person_id=credit.id, role=credit.role)
-                output.append(db_object)
+        for credit in set(api_object.person_credits):
+            db_object = cvdbmodels.IssueCredit(issue_id=api_object.id, person_id=credit.id, role=credit.role)
+            output.append(db_object)
 
-        uniqueness_check=set()
-        for credit in api_object.team_credits:
-            if credit.id not in uniqueness_check:
-                uniqueness_check.add(credit.id)
-                db_object = cvdbmodels.IssueTeam(issue_id=api_object.id, team_id=credit.id)
-                output.append(db_object)
+        for credit in set(api_object.team_credits):
+            db_object = cvdbmodels.IssueTeam(issue_id=api_object.id, team_id=credit.id)
+            output.append(db_object)
 
-        uniqueness_check=set()
-        for credit in api_object.story_arc_credits:
-            if credit.id not in uniqueness_check:
-                uniqueness_check.add(credit.id)
-                db_object = cvdbmodels.StoryArcIssue(issue_id=api_object.id, storyarc_id=credit.id)
-                output.append(db_object)
+        for credit in set(api_object.story_arc_credits):
+            db_object = cvdbmodels.StoryArcIssue(issue_id=api_object.id, storyarc_id=credit.id)
+            output.append(db_object)
 
     return output
 

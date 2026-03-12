@@ -1,10 +1,8 @@
 import datetime
-from collections.abc import Callable
 from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
 import typer
-from commitizen.git import commit
 from pydantic import ValidationError
 from rich.progress import BarColumn, Progress, TaskID, TaskProgressColumn, TextColumn, TimeRemainingColumn
 from sqlalchemy import Connection, Engine, MetaData, Table, create_engine, inspect, select, text
@@ -16,6 +14,7 @@ from fakevine.utils import cvstatic
 from fakevine.utils.console import console
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from pathlib import Path
 
     from sqlalchemy.engine.reflection import Inspector
@@ -176,7 +175,7 @@ def process_cv_table(progress: Progress, task_id: TaskID, reddit_db_table: Table
         try:
             for data_entry in data:
                 try:
-                    output_session.add_all(parsing_function(data_entry[0]))
+                    output_session.merge_all(parsing_function(data_entry[0]))
                     counter += 1
                     if commit_batch_size > 0 and counter > commit_batch_size:
                         output_session.commit()
