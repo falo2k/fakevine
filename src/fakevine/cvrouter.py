@@ -6,6 +6,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import HTMLResponse, JSONResponse, Response
 from loguru import logger
 from pydantic_core import ValidationError
+from rich.json import JSON
 
 from fakevine.models.cvapimodels import CommonParams, CVResponse, FilterParams, SearchParams
 from fakevine.trunks.comic_trunk import (
@@ -57,6 +58,10 @@ class CVRouter:
         status_code=status.HTTP_200_OK,
         content={"error": "OK", "limit": None, "offset": None, "number_of_page_results": 0,
                 "number_of_total_results": 0, "status_code": 1, "results": [], "version": "1.0" })
+    URL_FORMAT_ERROR: JSONResponse = JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content={key:value for key, value in
+            jsonable_encoder(CVResponse(limit=0, status_code=102)).items() if key != 'version'})
 
     router: APIRouter
     api_key: str | None = None
@@ -85,48 +90,49 @@ class CVRouter:
 
     def _attach_routes(self) -> None:
         routes =[
-            ('/character/{character_id}', self._get_character, "Character Detail", True),
+            ('/character/4005-{character_id}', self._get_character, "Character Detail", True),
             ('/characters', self._get_characters, "Character Search", True),
-            ('/chat/{item_id}', self._get_object_not_found, "Chat Detail", False),
+            ('/chat/2450-{item_id}', self._get_object_not_found, "Chat Detail", False),
             ('/chats', self._get_cv_deadend, "Chat Search", False),
-            ('/concept/{concept_id}', self._get_concept, "Concept Detail", True),
+            ('/concept/4015-{concept_id}', self._get_concept, "Concept Detail", True),
             ('/concepts', self._get_concepts, "Concept Search", True),
-            ('/episode/{episode_id}', self._get_episode, "Episode Detail", True),
+            ('/episode/4070-{episode_id}', self._get_episode, "Episode Detail", True),
             ('/episodes', self._get_episodes, "Episode Search", True),
-            ('/issue/{issue_id}', self._get_issue, "Issue Detail", True),
+            ('/issue/4000-{issue_id}', self._get_issue, "Issue Detail", True),
             ('/issues', self._get_issues, "Issue Search", True),
-            ('/location/{location_id}', self._get_location, "Location Detail", True),
+            ('/location/4020-{location_id}', self._get_location, "Location Detail", True),
             ('/locations', self._get_locations, "Location Search", True),
-            ('/movie/{movie_id}', self._get_movie, "Movie Detail", True),
+            ('/movie/4025-{movie_id}', self._get_movie, "Movie Detail", True),
             ('/movies', self._get_movies, "Movie Search", True),
-            ('/object/{object_id}', self._get_object, "Object Detail", True),
+            ('/object/4055-{object_id}', self._get_object, "Object Detail", True),
             ('/objects', self._get_objects, "Object Search", True),
-            ('/origin/{origin_id}', self._get_origin, "Origin Detail", True),
+            ('/origin/4030-{origin_id}', self._get_origin, "Origin Detail", True),
             ('/origins', self._get_origins, "Origin Search", True),
-            ('/person/{person_id}', self._get_person, "Person Detail", True),
+            ('/person/4040-{person_id}', self._get_person, "Person Detail", True),
             ('/people', self._get_people, "People Detail", True),
-            ('/power/{power_id}', self._get_power, "Power Detail", True),
+            ('/power/4035-{power_id}', self._get_power, "Power Detail", True),
             ('/powers', self._get_powers, "Power Search", True),
-            ('/promo/{promo_id}', self._get_object_not_found, "Promo Detail", False),
+            ('/promo/1700-{promo_id}', self._get_object_not_found, "Promo Detail", False),
             ('/promos', self._get_cv_deadend, "Promo Search", False),
-            ('/publisher/{publisher_id}', self._get_publisher, "Publisher Detail", True),
+            ('/publisher/4010-{publisher_id}', self._get_publisher, "Publisher Detail", True),
             ('/publishers', self._get_publishers, "Publisher Search", True),
             ('/search', self._get_search, "General Search", True),
-            ('/series/{series_id}', self._get_series, "Series Detail", True),
+            ('/series/4075-{series_id}', self._get_series, "Series Detail", True),
             ('/series_list', self._get_series_list, "Series Search", True),
-            ('/story_arc/{story_arc_id}', self._get_story_arc, "Story Arc Detail", True),
+            ('/story_arc/4045-{story_arc_id}', self._get_story_arc, "Story Arc Detail", True),
             ('/story_arcs', self._get_story_arcs, "Story Arc Search", True),
-            ('/team/{team_id}', self._get_team, "Team Detail", True),
+            ('/team/4060-{team_id}', self._get_team, "Team Detail", True),
             ('/teams', self._get_teams, "Team Search", True),
             ('/types', self._get_types, "Resource Type Data", True),
-            ('/video/{video_id}', self._get_video, "Video Detail", True),
+            ('/video/2300-{video_id}', self._get_video, "Video Detail", True),
             ('/videos', self._get_videos, "Video Search", True),
-            ('/video_type/{video_type_id}', self._get_video_type, "Video Type Detail", True),
+            ('/video_type/2320-{video_type_id}', self._get_video_type, "Video Type Detail", True),
             ('/video_types', self._get_video_types, "Video Type Search", True),
-            ('/video_category/{video_category_id}', self._get_video_category, "Video Category Detail", True),
+            ('/video_category/2320-{video_category_id}', self._get_video_category, "Video Category Detail", True),
             ('/video_categories', self._get_video_categories, "Video Category Search", True),
             ('/volumes', self._get_volumes, "Volume Search", True),
-            ('/volume/{volume_id}', self._get_volume, "Volume Detail", True),
+            ('/volume/4050-{volume_id}', self._get_volume, "Volume Detail", True),
+            ('/{any_id}/{other_id}', self._get_url_format_error, "URL Format Error", False),
             ('/*', self._get_undefined, "Catch All", False),
         ]
 
@@ -309,6 +315,9 @@ class CVRouter:
 
     async def _get_object_not_found(self, item_id: str | None, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=lambda *_, **__: self.OBJECT_NOT_FOUND, item_id=item_id)
+
+    async def _get_url_format_error(self, any_id: str | None, params: Annotated[CommonParams, Query()]) -> Response:
+        return self._fetch_response(params=params, trunk_method=lambda *_, **__: self.URL_FORMAT_ERROR, item_id=any_id)
 
     async def _get_undefined(self) -> HTMLResponse:
         return HTMLResponse(content="Unknown route", status_code=status.HTTP_404_NOT_FOUND)

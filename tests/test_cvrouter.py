@@ -149,7 +149,7 @@ def test_volumes_route_with_api_key_returns_ok(client_and_trunk: tuple[TestClien
 
 def test_volume_detail_with_api_key(client_and_trunk: tuple[TestClient, ComicTrunk]):
     client, _ = client_and_trunk
-    r = client.get("/volume/123", params={"api_key": "secret"})
+    r = client.get("/volume/4050-1234", params={"api_key": "secret"})
     assert r.status_code == 200
     d = r.json()
     assert isinstance(d, dict)
@@ -174,6 +174,34 @@ def test_search_without_query_returns_object_not_found_client(client_and_trunk: 
         "number_of_page_results": 0,
         "number_of_total_results": 0,
         "status_code": 101,
+        "results": [],
+        }
+
+def test_malformed_route_valid_root(client_and_trunk: tuple[TestClient, ComicTrunk]):
+    client, _ = client_and_trunk
+    rs = client.get("/volume/1234-1234", params={"api_key": "secret"})
+    assert rs.status_code == status.HTTP_404_NOT_FOUND
+    assert rs.json() == {
+        "error": "Error in URL Format",
+        "limit": 0,
+        "offset": 0,
+        "number_of_page_results": 0,
+        "number_of_total_results": 0,
+        "status_code": 102,
+        "results": [],
+        }
+
+def test_malformed_route_invalid_root(client_and_trunk: tuple[TestClient, ComicTrunk]):
+    client, _ = client_and_trunk
+    rs = client.get("/voume/4050-1234", params={"api_key": "secret"})
+    assert rs.status_code == status.HTTP_404_NOT_FOUND
+    assert rs.json() == {
+        "error": "Error in URL Format",
+        "limit": 0,
+        "offset": 0,
+        "number_of_page_results": 0,
+        "number_of_total_results": 0,
+        "status_code": 102,
         "results": [],
         }
 

@@ -55,8 +55,7 @@ class MultiResponse[T](CVResponse):
     results: list[T] = []
 
 class BasicLinkedEntity(BaseModel):
-    class Config:  # noqa: D106
-        frozen = True
+    model_config = ConfigDict(frozen = True)
 
     api_detail_url: str
     id: int

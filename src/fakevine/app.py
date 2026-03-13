@@ -1,5 +1,7 @@
 import logging
 import os
+import sys
+from pathlib import Path
 
 import uvicorn
 from fastapi import FastAPI
@@ -7,6 +9,7 @@ from loguru import logger
 
 from fakevine.cvrouter import CVRouter
 from fakevine.trunks.simple_cache_trunk import SimpleCacheTrunk
+from fakevine.trunks.static_db_trunk import StaticDBTrunk
 
 
 def main() -> None:
@@ -17,17 +20,35 @@ def main() -> None:
     """
     app = FastAPI()
 
-    try:
-        cache_expiry = int(os.environ.get("CACHE_EXPIRY_SECONDS"))  # ty:ignore[invalid-argument-type]
-    except (ValueError, TypeError):
-        cache_expiry = 24*60*60
+    log_interception()
 
-    cv_router = CVRouter(trunk=SimpleCacheTrunk(
-        cv_api_key=os.environ["CACHE_CV_API_KEY"],
-        cache_filename=os.environ.get("CACHE_DB_PATH"),
-        cache_expiry_seconds=cache_expiry,
-        cv_api_url=os.environ.get("CACHE_CV_API_URL")),
-        api_key=os.environ.get("API_KEY"))
+    comic_trunk = os.environ.get("COMIC_TRUNK", "Cache").lower()
+    if comic_trunk not in ["cache", "staticdb", "json"]:
+        logger.warning("COMIC_TRUNK setting not recognised, defaulting to Cache")
+        comic_trunk = "cache"
+
+    match comic_trunk:
+        case "cache":
+            try:
+                cache_expiry = int(os.environ.get("CACHE_EXPIRY_MINUTES"))  # ty:ignore[invalid-argument-type]
+            except (ValueError, TypeError):
+                cache_expiry = 24*60
+
+            cv_router = CVRouter(trunk=SimpleCacheTrunk(
+                cv_api_key=os.environ["CACHE_CV_API_KEY"],
+                cache_filename=os.environ.get("CACHE_DB_PATH"),
+                cache_expiry_minutes=cache_expiry,
+                cv_api_url=os.environ.get("CACHE_CV_API_URL")),
+                api_key=os.environ.get("API_KEY"))
+
+        case "staticdb":
+            cv_router = CVRouter(trunk=StaticDBTrunk(
+                database_path=Path(os.environ.get("STATICDB_PATH", "fakevine.db"))),
+                api_key=os.environ.get("API_KEY"))
+
+        case "json":
+            logger.error("JSON Trunk not yet implemented")
+            sys.exit(1)
 
     app.include_router(cv_router.router)
 
