@@ -638,7 +638,7 @@ def test_single_and_multi_response():
         ('id,invalid_field,name', ['id', 'name']),
         ('', None),
         ('id', ['id']),
-        ('ID,NAME,DATE_LAST_UPDATED', ['id', 'name', 'date_last_updated']),  # case insensitive
+        ('ID,NAME,DATE_LAST_UPDATED', None),  # case sensitve arguments
         ('id, name , date_last_updated', ['id']),  # with spaces
         ('count_of_issues,start_year', ['count_of_issues', 'start_year']),
         ('nonexistent', None),
@@ -655,7 +655,7 @@ def test_split_and_validate_field_list(input_str: str, expected: list[str] | Non
         ('id,invalid,name', 'id,name'),
         ('', None),
         ('id', 'id'),
-        ('ID,NAME,DATE_LAST_UPDATED', 'id,name,date_last_updated'),
+        ('ID,NAME,DATE_LAST_UPDATED', None),
         ('id, name , date_last_updated', 'id'),
         ('count_of_issues,start_year', 'count_of_issues,start_year'),
         ('nonexistent', None),
@@ -673,6 +673,7 @@ def test_validate_field_list(input_str: str, expected: str | None) -> None:
         ('date_added:2020-01-01 00:00:00', ['date_added:2020-01-01 00:00:00']),
         ('invalid_field:value', None),
         ('name:', None),  # empty value
+        ('ID:1,name:Image,DATE_LAST_UPDATED:2009', ['name:image']),
         ('id:1|2', ['id:1|2']),  # range indicator for non-datetime
         ('date_last_updated:invalid_date', None),  # invalid date
         ('', None),
@@ -706,6 +707,8 @@ def test_validate_filter_list(input_str: str, expected: str | None) -> None:
     [
         ('nothing:asdasd,name:desc,id:sgbsdg', ('id', 'asc')),
         ('name:desc', ('name', 'desc')),
+        ('name:Desc', ('name', 'desc')),
+        ('Name:desc', None),
         ('id:asc', ('id', 'asc')),
         ('date_last_updated:desc', ('date_last_updated', 'desc')),
         ('invalid:desc', None),
