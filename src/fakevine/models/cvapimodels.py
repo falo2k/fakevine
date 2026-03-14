@@ -34,7 +34,7 @@ def split_and_validate_field_list(value: str | None, model: type[BaseModel]) -> 
     if value is None or value == "":
         return None
 
-    fields = [field for field in value.lower().split(',') if field in model.model_fields]
+    fields = [field for field in value.split(',') if field in model.model_fields]
 
     return None if len(fields) == 0 else fields
 
@@ -52,17 +52,22 @@ def split_and_validate_filter_list(value: str | None, model: type[BaseModel]) ->
     items = []
     filterable: list[str] = [field for field in model.model_fields if FieldType.Filterable in model.model_fields[field].metadata]
     datetime_fields: list[str] = [field for field in model.model_fields if FieldType.DateTime in model.model_fields[field].metadata]
-    for filter_string in value.lower().split(','):
+    for filter_string in value.split(','):
         split_sort = filter_string.split(':',1)
         if len(split_sort) < 2 or split_sort[1] == '':  # noqa: PLR2004
             continue
+
+        split_sort[1] = split_sort[1].lower()
 
         # At some point could test behaviour for what happens if only one half is invalid.
         try:
             if split_sort[0] in datetime_fields:
                 dates = split_sort[1].split('|',maxsplit=1)
-                for date_string in dates:
-                    datetime.datetime.strptime(date_string,"%Y-%m-%d %H:%M:%S")  # noqa: DTZ007
+                dates[0] = check_and_fix_date_fields(dates[0])
+                if len(dates) > 1:
+                    dates[1] = check_and_fix_date_fields(dates[1])
+
+                split_sort[1] = '|'.join(dates)
         except ValueError:
             continue
 
@@ -70,6 +75,29 @@ def split_and_validate_filter_list(value: str | None, model: type[BaseModel]) ->
             items.append(':'.join(split_sort))
 
     return None if len(items) == 0 else items
+
+def check_and_fix_date_fields(date_string: str) -> str:
+    """Validate and normlalise date/datetime strings from requests."""
+    # ruff: disable[DTZ007]
+    format_strings = {
+        '%Y-%m-%d %H:%M:%S': '%Y-%m-%d %H:%M:%S',
+        '%Y-%m-%d %H:%M:': '%Y-%m-%d %H:%M:%S',
+        '%Y-%m-%d %H:%M': '%Y-%m-%d %H:%M:%S',
+        '%Y-%m-%d %H:': '%Y-%m-%d %H:%M:%S',
+        '%Y-%m-%d %H': '%Y-%m-%d %H:%M:%S',
+        '%Y-%m-%d': '%Y-%m-%d',
+    }
+
+    date_string = date_string.strip()
+    for test_format, output_format in format_strings.items():
+        try:
+            parsed_date = datetime.datetime.strptime(date_string, test_format)
+            return parsed_date.strftime(output_format)
+        except ValueError:
+            continue
+
+    # ruff: enable[DTZ007]
+    raise ValueError
 
 def validate_filter_list(value: str | None, model: type[BaseModel]) -> str | None:
     """Validate field_list in request params using CV's logic."""
@@ -88,10 +116,13 @@ def split_and_validate_sort_order(value: str | None, model: type[BaseModel]) -> 
 
     items = []
     sortable = [field for field in model.model_fields if FieldType.Sortable in model.model_fields[field].metadata]
-    for sorter in value.lower().split(','):
+    for sorter in value.split(','):
         split_sort = sorter.split(':',1)
-        if len(split_sort) < 2:  # noqa: PLR2004
+        if len(split_sort) < 2 or split_sort[1] == '':  # noqa: PLR2004
             split_sort.append('asc')
+
+        split_sort[1] = split_sort[1].lower()
+
         if split_sort[1] not in ['asc', 'desc']:
             split_sort[1] = 'asc'
 
@@ -191,7 +222,7 @@ class BaseCharacter(BaseEntity):
     birth: Annotated[str, "Date string in the form %Y-%m-%d %H:%M:%S"] | None
     count_of_issue_apperances: int = 0
     first_appeared_in_issue: LinkedIssue | None
-    gender: int | None
+    gender: Annotated[int | None, FieldType.Filterable]
     origin: BasicLinkedEntity | None
     publisher: BasicLinkedEntity | None
     real_name: str | None
@@ -231,11 +262,13 @@ class AssociatedImages(BaseModel):
 
 class BaseIssue(BaseEntity):
     associated_images: list[AssociatedImages] = []
-    cover_date: str | None
+    cover_date: Annotated[str | None, 'Response format is %Y-%m-%d but the filter format can be anything up to %Y-%m-%d %H:%M:%S',
+    FieldType.Sortable, FieldType.Filterable, FieldType.DateTime]
     has_staff_review: Literal[False] | SiteLinkedEntity
-    issue_number: str | None # Unbelievable that this can be empty. "Mature data source."
-    store_date: str | None
-    volume: SiteLinkedEntity | None
+    issue_number: Annotated[str | None, FieldType.Filterable, FieldType.Sortable] # Unbelievable this can be empty. "Mature data source"
+    store_date: Annotated[str | None, 'Response format is %Y-%m-%d but the filter format can be anything up to %Y-%m-%d %H:%M:%S',
+        FieldType.Sortable, FieldType.Filterable, FieldType.DateTime]
+    volume: Annotated[SiteLinkedEntity | None, FieldType.Filterable]
 
 class PersonCredits(SiteLinkedEntity):
     role: str
@@ -285,8 +318,8 @@ class DetailObject(BaseObject):
 # Note that BaseOrigin does not use the common entity base of other models
 class BaseOrigin(BaseModel):
     api_detail_url: str
-    id: int
-    name: str | None
+    id: Annotated[int, FieldType.Sortable, FieldType.Filterable]
+    name: Annotated[str | None, FieldType.Sortable, FieldType.Filterable] = None
     site_detail_url: str
 
 class DetailOrigin(BaseOrigin):

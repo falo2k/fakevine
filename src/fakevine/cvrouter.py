@@ -211,6 +211,9 @@ class CVRouter:
         if params.query is None:
             return CVRouter.OBJECT_NOT_FOUND
 
+        params.sort = validate_sort_order(params.sort, cvapimodels.BaseVolume)
+        params.field_list = validate_field_list(params.field_list, cvapimodels.BaseVolume)
+
         return self._fetch_response(params=params, trunk_method=self.trunk.search)
 
     async def _get_types(self,
@@ -224,84 +227,140 @@ class CVRouter:
         return self._fetch_response(params=params, trunk_method=self.trunk.character, item_id=character_id)
 
     async def _get_characters(self, params: Annotated[FilterParams, Query()]) -> Response:
+        params.sort = validate_sort_order(params.sort, cvapimodels.BaseVolume)
+        params.field_list = validate_field_list(params.field_list, cvapimodels.BaseVolume)
+        params.filter = validate_filter_list(params.filter, cvapimodels.BaseVolume)
+
         return self._fetch_response(params=params, trunk_method=self.trunk.characters)
 
     async def _get_concept(self, concept_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.concept, item_id=concept_id)
 
     async def _get_concepts(self, params: Annotated[FilterParams, Query()]) -> Response:
+        params.sort = validate_sort_order(params.sort, cvapimodels.BaseConcept)
+        params.field_list = validate_field_list(params.field_list, cvapimodels.BaseConcept)
+        params.filter = validate_filter_list(params.filter, cvapimodels.BaseConcept)
+
         return self._fetch_response(params=params, trunk_method=self.trunk.concepts)
 
     async def _get_episode(self, episode_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.episode, item_id=episode_id)
 
     async def _get_episodes(self, params: Annotated[FilterParams, Query()]) -> Response:
+        params.sort = validate_sort_order(params.sort, cvapimodels.BaseEntity)
+        params.field_list = validate_field_list(params.field_list, cvapimodels.BaseEntity)
+        params.filter = validate_filter_list(params.filter, cvapimodels.BaseEntity)
+
         return self._fetch_response(params=params, trunk_method=self.trunk.episodes)
 
     async def _get_issue(self, issue_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.issue, item_id=issue_id)
 
     async def _get_issues(self, params: Annotated[FilterParams, Query()]) -> Response:
+        params.sort = validate_sort_order(params.sort, cvapimodels.BaseIssue)
+        params.field_list = validate_field_list(params.field_list, cvapimodels.BaseIssue)
+        params.filter = validate_filter_list(params.filter, cvapimodels.BaseIssue)
+
         return self._fetch_response(params=params, trunk_method=self.trunk.issues)
 
     async def _get_location(self, location_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.location, item_id=location_id)
 
     async def _get_locations(self, params: Annotated[FilterParams, Query()]) -> Response:
+        params.sort = validate_sort_order(params.sort, cvapimodels.BaseLocation)
+        params.field_list = validate_field_list(params.field_list, cvapimodels.BaseLocation)
+        params.filter = validate_filter_list(params.filter, cvapimodels.BaseLocation)
+
         return self._fetch_response(params=params, trunk_method=self.trunk.locations)
 
     async def _get_movie(self, movie_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.movie, item_id=movie_id)
 
     async def _get_movies(self, params: Annotated[FilterParams, Query()]) -> Response:
+        params.sort = validate_sort_order(params.sort, cvapimodels.BaseEntity)
+        params.field_list = validate_field_list(params.field_list, cvapimodels.BaseEntity)
+        params.filter = validate_filter_list(params.filter, cvapimodels.BaseEntity)
+
         return self._fetch_response(params=params, trunk_method=self.trunk.movies)
 
     async def _get_object(self, object_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.object, item_id=object_id)
 
     async def _get_objects(self, params: Annotated[FilterParams, Query()]) -> Response:
+        params.sort = validate_sort_order(params.sort, cvapimodels.BaseObject)
+        params.field_list = validate_field_list(params.field_list, cvapimodels.BaseObject)
+        params.filter = validate_filter_list(params.filter, cvapimodels.BaseObject)
+
         return self._fetch_response(params=params, trunk_method=self.trunk.objects)
 
     async def _get_origin(self, origin_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.origin, item_id=origin_id)
 
     async def _get_origins(self, params: Annotated[FilterParams, Query()]) -> Response:
+        params.sort = validate_sort_order(params.sort, cvapimodels.BaseOrigin)
+        params.field_list = validate_field_list(params.field_list, cvapimodels.BaseOrigin)
+        params.filter = validate_filter_list(params.filter, cvapimodels.BaseOrigin)
+
         return self._fetch_response(params=params, trunk_method=self.trunk.origins)
 
     async def _get_person(self, person_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.person, item_id=person_id)
 
-    async def _get_people(self, params: Annotated[CommonParams, Query()]) -> Response:
+    async def _get_people(self, params: Annotated[FilterParams, Query()]) -> Response:
+        params.sort = validate_sort_order(params.sort, cvapimodels.BasePerson)
+        params.field_list = validate_field_list(params.field_list, cvapimodels.BasePerson)
+        params.filter = validate_filter_list(params.filter, cvapimodels.BasePerson)
+
         return self._fetch_response(params=params, trunk_method=self.trunk.people)
 
     async def _get_power(self, power_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.power, item_id=power_id)
 
     async def _get_powers(self, params: Annotated[FilterParams, Query()]) -> Response:
+        params.sort = validate_sort_order(params.sort, cvapimodels.BasePower)
+        params.field_list = validate_field_list(params.field_list, cvapimodels.BasePower)
+        params.filter = validate_filter_list(params.filter, cvapimodels.BasePower)
+
         return self._fetch_response(params=params, trunk_method=self.trunk.powers)
 
     async def _get_publisher(self, publisher_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.publisher, item_id=publisher_id)
 
     async def _get_publishers(self, params: Annotated[FilterParams, Query()]) -> Response:
+        params.sort = validate_sort_order(params.sort, cvapimodels.BasePublisher)
+        params.field_list = validate_field_list(params.field_list, cvapimodels.BasePublisher)
+        params.filter = validate_filter_list(params.filter, cvapimodels.BasePublisher)
+
         return self._fetch_response(params=params, trunk_method=self.trunk.publishers)
 
-    async def _get_series(self, series_id: str, params: Annotated[FilterParams, Query()]) -> Response:
+    async def _get_series(self, series_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.series, item_id=series_id)
 
-    async def _get_series_list(self, params: Annotated[CommonParams, Query()]) -> Response:
+    async def _get_series_list(self, params: Annotated[FilterParams, Query()]) -> Response:
+        params.sort = validate_sort_order(params.sort, cvapimodels.BaseEntity)
+        params.field_list = validate_field_list(params.field_list, cvapimodels.BaseEntity)
+        params.filter = validate_filter_list(params.filter, cvapimodels.BaseEntity)
+
         return self._fetch_response(params=params, trunk_method=self.trunk.series_list)
 
     async def _get_story_arc(self, story_arc_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.story_arc, item_id=story_arc_id)
 
     async def _get_story_arcs(self, params: Annotated[FilterParams, Query()]) -> Response:
+        params.sort = validate_sort_order(params.sort, cvapimodels.BaseStoryArc)
+        params.field_list = validate_field_list(params.field_list, cvapimodels.BaseStoryArc)
+        params.filter = validate_filter_list(params.filter, cvapimodels.BaseStoryArc)
+
         return self._fetch_response(params=params, trunk_method=self.trunk.story_arcs)
 
     async def _get_team(self, team_id: str, params: Annotated[CommonParams, Query()]) -> Response:
         return self._fetch_response(params=params, trunk_method=self.trunk.team, item_id=team_id)
 
     async def _get_teams(self, params: Annotated[FilterParams, Query()]) -> Response:
+        params.sort = validate_sort_order(params.sort, cvapimodels.BaseTeam)
+        params.field_list = validate_field_list(params.field_list, cvapimodels.BaseTeam)
+        params.filter = validate_filter_list(params.filter, cvapimodels.BaseTeam)
+
         return self._fetch_response(params=params, trunk_method=self.trunk.teams)
 
     async def _get_video(self, video_id: str, params: Annotated[CommonParams, Query()]) -> Response:

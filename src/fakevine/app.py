@@ -42,8 +42,14 @@ def main() -> None:
                 api_key=os.environ.get("API_KEY"))
 
         case "staticdb":
+            db_path = Path(os.environ.get("STATICDB_PATH", "fakevine.db"))
+
+            if not db_path.exists() and not db_path.is_file():
+                logger.error(f'{db_path} does not exist / is not a file')
+                sys.exit(1)
+
             cv_router = CVRouter(trunk=StaticDBTrunk(
-                database_path=Path(os.environ.get("STATICDB_PATH", "fakevine.db"))),
+                database_path=Path(db_path)),
                 api_key=os.environ.get("API_KEY"))
 
         case "json":

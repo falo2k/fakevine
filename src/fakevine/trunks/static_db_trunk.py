@@ -1,30 +1,31 @@
 from pathlib import Path
 
-import sqlalchemy
+from loguru import logger
+from sqlalchemy import Engine, create_engine
+from sqlalchemy.exc import DatabaseError
+from sqlalchemy.orm import Session
+from sqlalchemy.sql.expression import text
 
 from fakevine.models import cvapimodels, cvdbmodels
 from fakevine.trunks.comic_trunk import (
-    AuthenticationError,
     ComicTrunk,
-    GatewayError,
-    RateLimitError,
-    RequestLimitError,
     UnsupportedResponseError,
 )
 
 
 class StaticDBTrunk(ComicTrunk):
     def __init__(self, database_path: Path):
-        self.database_path = database_path
+        self.db_engine: Engine = create_engine(f"sqlite:///{database_path.absolute()}")
+        self.session = Session(self.db_engine)
 
-    def search(self, params: cvapimodels.SearchParams) -> cvapimodels.SearchResponse:
-        raise UnsupportedResponseError
+        try:
+            with self.db_engine.connect() as conn:
+                _ = conn.execute(text("SELECT 'hello engine'"))
+        except DatabaseError:
+            logger.exception("Input database is not a valid SQL database")
+            raise
 
-    def volume(self, item_id: str, params: cvapimodels.CommonParams) -> cvapimodels.SingleResponse[cvapimodels.DetailVolume]:
-        raise UnsupportedResponseError
-
-    def volumes(self, params: cvapimodels.FilterParams) -> cvapimodels.MultiResponse[cvapimodels.BaseVolume]:
-        raise UnsupportedResponseError
+        # TODO@falo2k: Validate database schema
 
     def character(self, item_id: str, params: cvapimodels.CommonParams) -> cvapimodels.SingleResponse[cvapimodels.DetailCharacter]:
         raise UnsupportedResponseError
@@ -38,12 +39,6 @@ class StaticDBTrunk(ComicTrunk):
     def concepts(self, params: cvapimodels.CommonParams) -> cvapimodels.MultiResponse[cvapimodels.BaseConcept]:
         raise UnsupportedResponseError
 
-    def episode(self, item_id: str, params: cvapimodels.CommonParams) -> cvapimodels.CVResponse:
-        raise UnsupportedResponseError
-
-    def episodes(self, params: cvapimodels.CommonParams) -> cvapimodels.CVResponse:
-        raise UnsupportedResponseError
-
     def issue(self, item_id: str, params: cvapimodels.CommonParams) -> cvapimodels.SingleResponse[cvapimodels.DetailIssue]:
         raise UnsupportedResponseError
 
@@ -54,12 +49,6 @@ class StaticDBTrunk(ComicTrunk):
         raise UnsupportedResponseError
 
     def locations(self, params: cvapimodels.CommonParams) -> cvapimodels.MultiResponse[cvapimodels.BaseLocation]:
-        raise UnsupportedResponseError
-
-    def movie(self, item_id: str, params: cvapimodels.CommonParams) -> cvapimodels.CVResponse:
-        raise UnsupportedResponseError
-
-    def movies(self, params: cvapimodels.CommonParams) -> cvapimodels.CVResponse:
         raise UnsupportedResponseError
 
     def object(self, item_id: str, params: cvapimodels.CommonParams) -> cvapimodels.SingleResponse[cvapimodels.DetailObject]:
@@ -92,10 +81,7 @@ class StaticDBTrunk(ComicTrunk):
     def publishers(self, params: cvapimodels.CommonParams) -> cvapimodels.MultiResponse[cvapimodels.BasePublisher]:
         raise UnsupportedResponseError
 
-    def series(self, item_id: str, params: cvapimodels.CommonParams) -> cvapimodels.CVResponse:
-        raise UnsupportedResponseError
-
-    def series_list(self, params: cvapimodels.CommonParams) -> cvapimodels.CVResponse:
+    def search(self, params: cvapimodels.SearchParams) -> cvapimodels.SearchResponse:
         raise UnsupportedResponseError
 
     def story_arc(self, item_id: str, params: cvapimodels.CommonParams) -> cvapimodels.SingleResponse[cvapimodels.DetailStoryArc]:
@@ -108,6 +94,32 @@ class StaticDBTrunk(ComicTrunk):
         raise UnsupportedResponseError
 
     def teams(self, params: cvapimodels.CommonParams) -> cvapimodels.MultiResponse[cvapimodels.BaseTeam]:
+        raise UnsupportedResponseError
+
+    def volume(self, item_id: str, params: cvapimodels.CommonParams) -> cvapimodels.SingleResponse[cvapimodels.DetailVolume]:
+        raise UnsupportedResponseError
+
+    def volumes(self, params: cvapimodels.FilterParams) -> cvapimodels.MultiResponse[cvapimodels.BaseVolume]:
+        raise UnsupportedResponseError
+
+
+    ## The trunk only supports comic data
+    def episode(self, item_id: str, params: cvapimodels.CommonParams) -> cvapimodels.CVResponse:
+        raise UnsupportedResponseError
+
+    def episodes(self, params: cvapimodels.CommonParams) -> cvapimodels.CVResponse:
+        raise UnsupportedResponseError
+
+    def movie(self, item_id: str, params: cvapimodels.CommonParams) -> cvapimodels.CVResponse:
+        raise UnsupportedResponseError
+
+    def movies(self, params: cvapimodels.CommonParams) -> cvapimodels.CVResponse:
+        raise UnsupportedResponseError
+
+    def series(self, item_id: str, params: cvapimodels.CommonParams) -> cvapimodels.CVResponse:
+        raise UnsupportedResponseError
+
+    def series_list(self, params: cvapimodels.CommonParams) -> cvapimodels.CVResponse:
         raise UnsupportedResponseError
 
     def video(self, item_id: str, params: cvapimodels.CommonParams) -> cvapimodels.CVResponse:
@@ -127,5 +139,3 @@ class StaticDBTrunk(ComicTrunk):
 
     def video_categories(self, params: cvapimodels.CommonParams) -> cvapimodels.CVResponse:
         raise UnsupportedResponseError
-
-    
