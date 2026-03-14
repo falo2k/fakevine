@@ -5,6 +5,7 @@ from pydantic import ValidationError
 
 from fakevine.models.cvapimodels import (
     BaseEntity,
+    BaseVolume,
     CVResponse,
     DetailCharacter,
     DetailConcept,
@@ -20,6 +21,12 @@ from fakevine.models.cvapimodels import (
     SearchResponse,
     SearchVolume,
     SingleResponse,
+    split_and_validate_field_list,
+    split_and_validate_filter_list,
+    split_and_validate_sort_order,
+    validate_field_list,
+    validate_filter_list,
+    validate_sort_order,
 )
 
 # helpers for model construction
@@ -620,4 +627,115 @@ def test_single_and_multi_response():
     assert multi.results == [1, 2, 3]
 
 
+# ---------------------------------------------------------------------------
+# Validation functions
+# ---------------------------------------------------------------------------
 
+@pytest.mark.parametrize(
+    ("input_str", "expected"),
+    [
+        ('id,name,date_last_updated', ['id', 'name', 'date_last_updated']),
+        ('id,invalid_field,name', ['id', 'name']),
+        ('', None),
+        ('id', ['id']),
+        ('ID,NAME,DATE_LAST_UPDATED', None),  # case sensitve arguments
+        ('id, name , date_last_updated', ['id']),  # with spaces
+        ('count_of_issues,start_year', ['count_of_issues', 'start_year']),
+        ('nonexistent', None),
+        ('id,,name', ['id', 'name']),  # empty fields
+    ],
+)
+def test_split_and_validate_field_list(input_str: str, expected: list[str] | None) -> None:
+    assert split_and_validate_field_list(input_str, BaseVolume) == expected
+
+@pytest.mark.parametrize(
+    ("input_str", "expected"),
+    [
+        ('id,name,monkeys,date_last_updated', 'id,name,date_last_updated'),
+        ('id,invalid,name', 'id,name'),
+        ('', None),
+        ('id', 'id'),
+        ('ID,NAME,DATE_LAST_UPDATED', None),
+        ('id, name , date_last_updated', 'id'),
+        ('count_of_issues,start_year', 'count_of_issues,start_year'),
+        ('nonexistent', None),
+        ('id,,name', 'id,name'),
+    ],
+)
+def test_validate_field_list(input_str: str, expected: str | None) -> None:
+    assert validate_field_list(input_str, BaseVolume) == expected
+
+@pytest.mark.parametrize(
+    ("input_str", "expected"),
+    [
+        ('date_last_updated:2009,daft:punk,name:,id,date_last_updated:2009-01-01 01:01:01', ['date_last_updated:2009-01-01 01:01:01']),
+        ('id:1,name:test', ['id:1', 'name:test']),
+        ('date_added:2020-01-01 00:00:00', ['date_added:2020-01-01 00:00:00']),
+        ('invalid_field:value', None),
+        ('name:', None),  # empty value
+        ('ID:1,name:Image,DATE_LAST_UPDATED:2009', ['name:image']),
+        ('id:1|2', ['id:1|2']),  # range indicator for non-datetime
+        ('date_last_updated:invalid_date', None),  # invalid date
+        ('', None),
+        ('id:123,date_last_updated:2020-01-01 00:00:00|2020-01-02 00:00:00', [
+            'id:123',
+            'date_last_updated:2020-01-01 00:00:00|2020-01-02 00:00:00']),
+    ]
+)
+def test_split_and_validate_filter_list(input_str: str, expected: list[str] | None) -> None:
+    assert split_and_validate_filter_list(input_str, BaseVolume) == expected
+
+@pytest.mark.parametrize(
+    ("input_str", "expected"),
+    [
+        ('date_last_updated:2009,daft:punk,name:,id,date_last_updated:2009-01-01 01:01:01', 'date_last_updated:2009-01-01 01:01:01'),
+        ('id:1,name:test', 'id:1,name:test'),
+        ('date_added:2020-01-01 00:00:00', 'date_added:2020-01-01 00:00:00'),
+        ('invalid_field:value', None),
+        ('name:', None),
+        ('id:1|2', 'id:1|2'),
+        ('date_last_updated:invalid_date', None),
+        ('', None),
+        ('id:123,date_last_updated:2020-01-01 00:00:00|2020-01-02 00:00:00', 'id:123,date_last_updated:2020-01-01 00:00:00|2020-01-02 00:00:00'),
+    ],
+)
+def test_validate_filter_list(input_str: str, expected: str | None) -> None:
+    assert validate_filter_list(input_str, BaseVolume) == expected
+
+@pytest.mark.parametrize(
+    ("input_str", "expected"),
+    [
+        ('nothing:asdasd,name:desc,id:sgbsdg', ('id', 'asc')),
+        ('name:desc', ('name', 'desc')),
+        ('name:Desc', ('name', 'desc')),
+        ('Name:desc', None),
+        ('id:asc', ('id', 'asc')),
+        ('date_last_updated:desc', ('date_last_updated', 'desc')),
+        ('invalid:desc', None),
+        ('name:invalid', ('name', 'asc')),  # invalid direction defaults to asc
+        ('', None),
+        ('id', ('id', 'asc')),  # no direction
+        ('name:desc,id:asc', ('id', 'asc')),  # takes last valid
+        ('nonexistent:desc,invalid:asc,name:desc', ('name', 'desc')),
+    ],
+)
+def test_split_and_validate_sort_order(input_str: str, expected: tuple[str, str] | None) -> None:
+    assert split_and_validate_sort_order(input_str, BaseVolume) == expected
+
+@pytest.mark.parametrize(
+    ("input_str", "expected"),
+    [
+        ('nothing:asdasd,name:desc,id:sgbsdg', 'id:asc'),
+        ('name:desc', 'name:desc'),
+        ('id:asc', 'id:asc'),
+        ('date_last_updated:desc', 'date_last_updated:desc'),
+        ('invalid:desc', None),
+        ('name:invalid', 'name:asc'),
+        ('', None),
+        ('id', 'id:asc'),
+        ('name:desc,id:asc', 'id:asc'),
+        ('nonexistent:desc,invalid:asc,name:desc', 'name:desc'),
+    ],
+)
+def test_validate_sort_order(input_str: str, expected: str | None) -> None:
+    assert validate_sort_order(input_str, BaseVolume) == expected
