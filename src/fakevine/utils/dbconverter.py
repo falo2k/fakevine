@@ -5,9 +5,10 @@ from zoneinfo import ZoneInfo
 import typer
 from pydantic import ValidationError
 from rich.progress import BarColumn, Progress, TaskID, TaskProgressColumn, TextColumn, TimeRemainingColumn
-from sqlalchemy import Connection, Engine, MetaData, Table, create_engine, inspect, select, text
+from sqlalchemy import Connection, Engine, MetaData, Table, create_engine, delete, inspect, select, text
 from sqlalchemy.exc import DatabaseError, IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import or_
 
 from fakevine.models import cvapimodels, cvdbmodels, helpers
 from fakevine.utils import cvstatic
@@ -134,7 +135,7 @@ def convert_db(reddit_db: Path, output_db: Path):
             ('cv_volume', helpers.parse_volume_reponse, cvdbmodels.Volume, 25000),
             ('cv_character', helpers.parse_character_reponse, cvdbmodels.Character, 20000),
             ('cv_team', helpers.parse_team_reponse, cvdbmodels.Team, 0),
-            ('cv_storyarc', helpers.parse_storyarc_reponse, cvdbmodels.StoryArc, 0),
+            ('cv_storyarc', helpers.parse_story_arc_reponse, cvdbmodels.StoryArc, 0),
             ('cv_issue', helpers.parse_issue_reponse, cvdbmodels.Issue, 5000),
         ]
 
@@ -175,7 +176,21 @@ def process_cv_table(progress: Progress, task_id: TaskID, reddit_db_table: Table
         try:
             for data_entry in data:
                 try:
-                    output_session.merge_all(parsing_function(data_entry[0]))
+                    new_records = parsing_function(data_entry[0])
+
+                    # Special case for characters - need to clear out entries in symmetrical relationship tables
+                    if reddit_db_table.name == 'cv_character' and len(new_records) > 0:
+                        character_record: cvdbmodels.Character = new_records[0]
+                        delete_enemies = delete(cvdbmodels.CharacterEnemy).where(
+                            or_(cvdbmodels.CharacterEnemy.character_id == character_record.id,
+                                cvdbmodels.CharacterEnemy.enemy_id == character_record.id))
+                        output_session.execute(delete_enemies)
+                        delete_friends = delete(cvdbmodels.CharacterFriend).where(
+                            or_(cvdbmodels.CharacterFriend.character_id == character_record.id,
+                                cvdbmodels.CharacterFriend.friend_id == character_record.id))
+                        output_session.execute(delete_friends)
+
+                    output_session.merge_all(new_records)
                     counter += 1
                     if commit_batch_size > 0 and counter > commit_batch_size:
                         output_session.commit()

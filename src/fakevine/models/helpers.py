@@ -102,14 +102,16 @@ def parse_character_reponse(api_response: str, associations: AssociatedEntities 
 
     if associations in [AssociatedEntities.ALL, AssociatedEntities.MASTERED]:
         for enemy in set(api_object.character_enemies):
-            if api_object.id <= enemy.id:
-                enemy_object = cvdbmodels.CharacterEnemy(character_id=api_object.id, enemy_id=enemy.id)
-                output.append(enemy_object)
+            enemy_object = cvdbmodels.CharacterEnemy(character_id=api_object.id, enemy_id=enemy.id)
+            output.append(enemy_object)
+            enemy_object = cvdbmodels.CharacterEnemy(character_id=enemy.id, enemy_id=api_object.id)
+            output.append(enemy_object)
 
         for friend in set(api_object.character_friends):
-            if api_object.id <= friend.id:
-                enemy_object = cvdbmodels.CharacterFriend(character_id=api_object.id, friend_id=friend.id)
-                output.append(enemy_object)
+            friend_object = cvdbmodels.CharacterFriend(character_id=api_object.id, friend_id=friend.id)
+            output.append(friend_object)
+            friend_object = cvdbmodels.CharacterFriend(character_id=friend.id, friend_id=api_object.id)
+            output.append(friend_object)
 
         for creator in set(api_object.creators):
             creator_object = cvdbmodels.CharacterCreator(character_id=api_object.id, person_id=creator.id)
@@ -182,7 +184,7 @@ def parse_volume_reponse(api_response: str) -> list[cvdbmodels.Base]:
 
     return output
 
-def parse_storyarc_reponse(api_response: str, associations: AssociatedEntities = AssociatedEntities.NONE) -> list[cvdbmodels.Base]:
+def parse_story_arc_reponse(api_response: str, associations: AssociatedEntities = AssociatedEntities.NONE) -> list[cvdbmodels.Base]:
     output = []
 
     api_object = cvapimodels.DetailStoryArc.model_validate_json(api_response)
@@ -194,7 +196,7 @@ def parse_storyarc_reponse(api_response: str, associations: AssociatedEntities =
 
     if associations == AssociatedEntities.ALL:
         for entity in set(api_object.issues):
-            db_object = cvdbmodels.StoryArcIssue(storyarc_id=api_object.id, issue_id=entity.id)
+            db_object = cvdbmodels.StoryArcIssue(story_arc_id=api_object.id, issue_id=entity.id)
             output.append(db_object)
 
     return output
@@ -249,7 +251,7 @@ def parse_issue_reponse(api_response: str, associations: AssociatedEntities = As
             output.append(db_object)
 
         for credit in set(api_object.story_arc_credits):
-            db_object = cvdbmodels.StoryArcIssue(issue_id=api_object.id, storyarc_id=credit.id)
+            db_object = cvdbmodels.StoryArcIssue(issue_id=api_object.id, story_arc_id=credit.id)
             output.append(db_object)
 
     return output
