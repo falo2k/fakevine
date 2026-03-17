@@ -344,7 +344,7 @@ class CVDate(BaseModel):
 class BasePerson(BaseEntity):
     birth: Annotated[str, "Date string in the form %Y-%m-%d %H:%M:%S"] | None
     country: str | None
-    count_of_isssue_appearances: Annotated[int, "Yes, isssue.  You want to fight about it?"] | None
+    count_of_isssue_appearances: Annotated[int, "Yes, isssue.  You want to fight about it?  Always null."] | None = None
     death: Annotated[CVDate, "Of course this is an entirely different format to birth.  Of course it is."] | None
     email: str | None = None
     gender: Annotated[int, "0: Unknown, 1: Male, 2 or 3: Female"] | None

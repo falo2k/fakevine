@@ -11,11 +11,11 @@ Some responses are not exact copies - CV returns a webpage for some HTTP error c
 The models are based on the [CV API documentation](https://comicvine.gamespot.com/api/documentation), and analysing actual CV data.  If it deviates from the documentation, that is likely because the documentation is wrong - e.g. no, [`/teams`](https://comicvine.gamespot.com/api/documentation#toc-0-34) is not filterable on `aliases`.  You may notice that there are a lot of nullable fields in the CV response models.  These reflect the real state of CV data rather than an ideal view of what could be (e.g. the API will serve empty volumes).  At the time of writing, I've only done models for the comic elements in the API as that's where I believe most use comes from.  It's possible that some validation will fail because of some unforseen futzery in ComicVine's data (if using as a cache) - please do report any such issues you find!  I have used these models to parse responses across all detail (single response) endpoints from CV without failures.
 
 ## Features
-Current:
+*Current:*
 - A single backend offering a simple sqlite backed cache for ComicVine
 - JSON responses only
 
-Planned:
+*Planned:*
 - Support for response types other than JSON
 - A backend to serve data from a SQLite database
 - A backend to serve data from a JSON file (mostly to support smaller test scenarios)
@@ -24,6 +24,9 @@ Planned:
 - Host a static folder for cover caching
 - Docker image
 - Healthcheck for the app and trunks, primarily for Docker to monitor
+
+*Unplanned:*
+- Request caching.  You can add a service like Caddy's [cache-handler](https://github.com/caddyserver/cache-handler) in front.
 
 ## Running The App
 Launch the app using [uv](https://docs.astral.sh/uv/) with `uv run fakevine`.  If you have not set any environment variables, you can pass a dotEnv file by running `uv run --env-file .env`.  See `.env.example` for details of available options.  At minimum you should define a CV API key for the cache to use.  The cache defaults to a 1 day expiry.
