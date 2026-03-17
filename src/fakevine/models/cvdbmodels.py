@@ -101,7 +101,7 @@ class Character(BaseEntity, Base):
         viewonly=True,
     )
 
-    story_arc_credits: AssociationProxy[list[StoryArc]] = association_proxy("issue_credits", "story_arc_credits")
+    #story_arc_credits: Need to do deduping and flattening in queries
 
     team_enemies: Mapped[list[Team]] = relationship(
         secondary="cv_team_character_enemy",

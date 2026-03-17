@@ -207,6 +207,7 @@ def parse_issue_reponse(api_response: str, associations: AssociatedEntities = As
     api_object = cvapimodels.DetailIssue.model_validate_json(api_response)
     db_object = cvdbmodels.Issue(
         issue_number=api_object.issue_number,
+        volume_id = api_object.volume.id if api_object.volume is not None else None,
         cover_date=parse_cv_date(api_object.cover_date),
         store_date=parse_cv_date(api_object.store_date),
         **select_common_fields(api_object),
