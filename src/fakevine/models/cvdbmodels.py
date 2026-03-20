@@ -7,7 +7,6 @@ same reason all relationships are view only.
 # ruff: noqa: D101
 import datetime  # noqa: TC003 # If moved into a typecheck block, SQLAlchemy will fail
 
-from sqlalchemy.ext.associationproxy import AssociationProxy, association_proxy
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column, relationship
 from sqlalchemy.types import JSON
 
@@ -31,6 +30,15 @@ class BaseTable:
     api_detail_url: Mapped[str] = mapped_column(sort_order=-198)
     name: Mapped[str | None] = mapped_column(sort_order=-199)
     site_detail_url: Mapped[str] = mapped_column(sort_order=-197)
+
+    @property
+    def summary(self) -> dict:  # noqa: D102
+        return {
+            'id' : self.id,
+            'api_detail_url' : self.api_detail_url,
+            'name' : self.name,
+            'site_detail_url' : self.site_detail_url,
+        }
 
 class BaseEntity(BaseTable):
     aliases: Mapped[str | None] = mapped_column(sort_order=-140)
@@ -78,10 +86,11 @@ class Character(BaseEntity, Base):
         viewonly=True,
     )
 
-    issue_credits: Mapped[list[Issue]] = relationship(
+    issue_credits: Mapped[set[Issue]] = relationship(
         secondary="cv_issue_character",
         primaryjoin="Character.id == cv_issue_character.c.character_id",
         secondaryjoin="Issue.id == cv_issue_character.c.issue_id",
+        collection_class=set,
         viewonly=True,
     )
 
@@ -124,7 +133,8 @@ class Character(BaseEntity, Base):
         viewonly=True,
     )
 
-    volume_credits: AssociationProxy[list[Volume]] = association_proxy("issue_credits", "volume")
+    # TODO@falo2k: Revisit AssociationProxies later to see if I can get them acting as sets and not duplicating
+    #volume_credits: AssociationProxy[set[Volume]] = association_proxy("issue_credits", "volume")  # noqa: ERA001
 
 class Concept(BaseEntity, Base):
     issue_credits: Mapped[list[Issue]] = relationship(
@@ -133,8 +143,6 @@ class Concept(BaseEntity, Base):
         secondaryjoin="Issue.id == cv_issue_concept.c.issue_id",
         viewonly=True,
     )
-
-    volume_credits: AssociationProxy[list[Volume]] = association_proxy("issue_credits", "volume")
 
 class Issue(BaseEntity, Base):
     # In the API, this would return "false" for None
@@ -234,8 +242,6 @@ class Location(BaseEntity, Base):
         primaryjoin="Location.id == cv_issue_location.c.location_id",
         viewonly=True,
     )
-    story_arc_credits: AssociationProxy[list[StoryArc]] = association_proxy("issue_credits", "story_arc_credits")
-    volumes: AssociationProxy[list[Volume]] = association_proxy("issue_credits", "volume")
 
 class Object(BaseEntity, Base):
     issue_credits: Mapped[list[Issue]] = relationship(
@@ -244,9 +250,6 @@ class Object(BaseEntity, Base):
         primaryjoin="Object.id == cv_issue_object.c.object_id",
         viewonly=True,
     )
-
-    story_arc_credits: AssociationProxy[list[StoryArc]] = association_proxy("issue_credits", "story_arc_credits")
-    volumes: AssociationProxy[list[Volume]] = association_proxy("issue_credits", "volume")
 
 class Origin(BaseTable, Base):
     characters: Mapped[list[Character]] = relationship(
@@ -279,9 +282,6 @@ class Person(BaseEntity, Base):
         viewonly=True,
     )
 
-    story_arc_credits: AssociationProxy[list[StoryArc]] = association_proxy("issues", "story_arc_credits")
-    volumes: AssociationProxy[list[Volume]] = association_proxy("issues", "volume")
-
 class Power(BaseEntity, Base):
     characters: Mapped[list[Character]] = relationship(
         secondary="cv_character_power",
@@ -300,8 +300,6 @@ class Publisher(BaseEntity, Base):
         foreign_keys="[Character.publisher_id]",
         viewonly=True,
     )
-
-    story_arcs: AssociationProxy[list[StoryArc]] = association_proxy("characters", "story_arc_credits")
 
     teams: Mapped[list[Team]] = relationship(
         primaryjoin="Publisher.id == Team.publisher_id",
@@ -373,9 +371,6 @@ class Team(BaseEntity, Base):
         viewonly=True,
     )
 
-    story_arc_credits: AssociationProxy[list[StoryArc]] = association_proxy("issue_credits", "story_arc_credits")
-    volumes: AssociationProxy[list[Volume]] = association_proxy("issue_credits", "volume")
-
 class Type(Base):
     __tablename__ = 'cv_type'
 
@@ -397,10 +392,6 @@ class Volume(BaseEntity, Base):
         foreign_keys="[Issue.volume_id]",
         viewonly=True,
     )
-
-    characters: AssociationProxy[list[Character]] = association_proxy("issues", "character_credits")
-    locations: AssociationProxy[list[Location]] = association_proxy("issues", "location_credits")
-    objects: AssociationProxy[list[Object]] = association_proxy("issues", "object_credits")
 
 class TeamCharacterFriend(Base):
     __tablename__ = 'cv_team_character_friend'

@@ -1,10 +1,10 @@
-# ruff: noqa: TRY003, EM101
+# ruff: noqa: EM101, D102
 import logging
 import os
 from typing import TYPE_CHECKING
 
 from loguru import logger
-from sqlalchemy import Engine, Row, create_engine, select
+from sqlalchemy import Engine, Result, Row, Sequence, create_engine, select
 from sqlalchemy.exc import DatabaseError
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import text
@@ -19,7 +19,19 @@ if TYPE_CHECKING:
 
 
 class StaticDBTrunk(ComicTrunk):
-    def __init__(self, database_path: Path):
+    """A Comic Trunk backed by a static SQLite database of data.
+
+    The database used should adhere to the schema defined in fakevine-utils.  Only supports
+    comic data, not TV/Movies.
+    """
+
+    def __init__(self, database_path: Path) -> None:
+        """Create a Static DB Trunk.
+
+        Args:
+            database_path (Path): Path to the database file.  Schema should match that returned by fakevine-utils.
+
+        """
         self.db_engine: Engine = create_engine(f"sqlite:///{database_path.absolute()}")
         self.session = Session(self.db_engine)
 
@@ -40,48 +52,113 @@ class StaticDBTrunk(ComicTrunk):
     def _datetime_format(self, date_time: datetime.datetime) -> str:
         return date_time.strftime('%Y-%m-%d %H:%M:%S')
 
-    def character(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.DetailCharacter]:
-        character_query: Row = self.session.execute(select(db.Character).where(db.Character.id == int(item_id))).first()
+    def _rows_to_list(self, rows: Sequence[Row], container_class: type[api.BasicLinkedEntity]) -> list:
+        def inner_func(row: Row) -> api.BasicLinkedEntity:
+            return container_class(**row._asdict())
 
-        if character_query is None:
+        return list(map(inner_func, rows))
+
+    def character(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.DetailCharacter]:
+        character_query: Result[db.Character] = self.session.execute(select(db.Character).where(db.Character.id == int(item_id)))
+        character_row: Row = character_query.first()
+
+        if character_row is None:
             return api.SingleResponse[api.DetailCharacter](limit=0, status_code=101)
 
-        character_record: db.Character = character_query[0]
+        if params.field_list is None or params.field_list == []:
+            return_class = api.DetailCharacter
+        else:
+            field_list = params.field_list.split(',')
+            return_class = api.filtered_model(api.DetailCharacter, field_list)
 
-        api_character = api.DetailCharacter(
-                id = character_record.id,
-                api_detail_url = character_record.api_detail_url,
-                name = character_record.name,
-                site_detail_url = character_record.api_detail_url,
-                aliases = character_record.aliases,
-                date_added = self._datetime_format(character_record.date_added),
-                date_last_updated = self._datetime_format(character_record.date_last_updated),
-                deck = character_record.deck,
-                description = character_record.description,
-                image = character_record.image,
-                birth = self._datetime_format(character_record.birth) if character_record.birth is not None else None,
-                count_of_issue_apperances = 0,
-                first_appeared_in_issue = None,
-                gender = character_record.gender,
-                origin = None,
-                publisher = None,
-                real_name = character_record.real_name,
-            )
+        direct_copy_fields = ['id', 'api_detail_url', 'name', 'aliases', 'deck', 'description', 'image', 'gender', 'real_name', 'site_detail_url']
+        field_filter: list[str] | None = None if params.field_list is None else params.field_list.split(',')
 
-        #issue_credits
+        character_record: db.Character = character_row[0]
 
-        #api_character.count_of_issue_apperances = self.session.execute(
-        #    select(func.count("*")).where(db.IssueCharacter.character_id == item_id)).first()[0]
-        print(character_record.publisher)
+        response_dict = {}
 
-        print(character_record.origin)
+        for copy_field in direct_copy_fields:
+            if field_filter is None or copy_field in field_filter:
+                response_dict[copy_field] = getattr(character_record, copy_field)
 
-        return api.SingleResponse[api.DetailCharacter](
+        if field_filter is None or 'date_added' in field_filter:
+            response_dict['date_added'] = self._datetime_format(character_record.date_added)
+        if field_filter is None or 'date_last_updated' in field_filter:
+            response_dict['date_last_updated'] = self._datetime_format(character_record.date_last_updated)
+        if field_filter is None or 'birth' in field_filter:
+            response_dict['birth'] = self._datetime_format(character_record.birth) if character_record.birth is not None else None
+        if field_filter is None or 'origin' in field_filter:
+            response_dict['origin'] = character_record.origin.summary if character_record.origin is not None else None
+        if field_filter is None or 'publisher' in field_filter:
+            response_dict['publisher'] = character_record.publisher.summary if character_record.publisher is not None else None
+
+        if field_filter is None or 'issue_credits' in field_filter or 'count_of_appearances' in field_filter:
+            query: list = self.session.execute(
+                select(db.Issue.id, db.Issue.name, db.Issue.api_detail_url, db.Issue.site_detail_url) \
+                    .select_from(db.IssueCharacter).where(db.IssueCharacter.character_id == item_id) \
+                    .join(db.Issue, db.Issue.id == db.IssueCharacter.issue_id)).all()
+            response_dict['count_of_issue_apperances'] = len(query)
+            response_dict['issue_credits'] = self._rows_to_list(query, api.SiteLinkedEntity)
+
+        # query: list = self.session.execute(
+        #     select(db.Issue.id, db.Issue.name, db.Issue.api_detail_url, db.Issue.site_detail_url) \
+        #         .select_from(db.CharacterIssueDied).where(db.CharacterIssueDied.character_id == item_id) \
+        #         .join(db.Issue, db.Issue.id == db.CharacterIssueDied.issue_id)).all()
+        # api_character.issues_died_in = self._rows_to_list(query, api.SiteLinkedEntity)
+
+        # query: list = self.session.execute(
+        #     select(db.Power.id, db.Power.name, db.Power.api_detail_url) \
+        #         .select_from(db.CharacterPower).where(db.CharacterPower.character_id == item_id) \
+        #         .join(db.Power, db.Power.id == db.CharacterPower.power_id)).all()
+        # api_character.powers = self._rows_to_list(query, api.BasicLinkedEntity)
+
+        # query: list = self.session.execute(
+        #     select(db.Character.id, db.Character.name, db.Character.api_detail_url, db.Character.site_detail_url) \
+        #         .select_from(db.CharacterEnemy).where(db.CharacterEnemy.character_id == item_id) \
+        #         .join(db.Character, db.Character.id == db.CharacterEnemy.enemy_id)).all()
+        # api_character.character_enemies = self._rows_to_list(query, api.SiteLinkedEntity)
+
+        # query: list = self.session.execute(
+        #     select(db.Character.id, db.Character.name, db.Character.api_detail_url, db.Character.site_detail_url) \
+        #         .select_from(db.CharacterFriend).where(db.CharacterFriend.character_id == item_id) \
+        #         .join(db.Character, db.Character.id == db.CharacterFriend.friend_id)).all()
+        # api_character.character_friends = self._rows_to_list(query, api.SiteLinkedEntity)
+
+        # query: list = self.session.execute(
+        #     select(db.Person.id, db.Person.name, db.Person.api_detail_url, db.Person.site_detail_url) \
+        #         .select_from(db.CharacterCreator).where(db.CharacterCreator.character_id == item_id) \
+        #         .join(db.Person, db.Person.id == db.CharacterCreator.person_id)).all()
+        # api_character.creators = self._rows_to_list(query, api.SiteLinkedEntity)
+
+        # subq = select(db.StoryArcIssue.story_arc_id).distinct() \
+        #         .select_from(db.IssueCharacter).where(db.IssueCharacter.character_id == item_id) \
+        #         .join(db.StoryArcIssue, db.StoryArcIssue.issue_id == db.IssueCharacter.issue_id).subquery()
+        # query: list = self.session.execute(
+        #     select(db.StoryArc.id, db.StoryArc.name, db.StoryArc.api_detail_url, db.StoryArc.site_detail_url) \
+        #         .join(subq, db.StoryArc.id == subq.c.story_arc_id)).all()
+        # api_character.story_arc_credits = self._rows_to_list(query, api.SiteLinkedEntity)
+
+        # query: list = self.session.execute(
+        #     select(db.Volume.id, db.Volume.name, db.Volume.api_detail_url, db.Volume.site_detail_url) \
+        #         .select_from(db.IssueCharacter).where(db.IssueCharacter.character_id == item_id) \
+        #         .join(db.Issue, db.Issue.id == db.IssueCharacter.issue_id) \
+        #         .join(db.Volume, db.Issue.volume_id == db.Volume.id)).all()
+        # api_character.volume_credits = self._rows_to_list(query, api.SiteLinkedEntity)
+
+        # team_enemies = character_record.team_enemies,
+        # team_friends = character_record.team_friends,
+        # teams = character_record.teams,
+
+        response_object = return_class(**response_dict)
+
+
+        return api.SingleResponse[return_class](  # ty:ignore[invalid-type-form]
             limit=1,
             number_of_page_results=1,
             number_of_total_results=1,
             status_code=1,
-            results=api_character)
+            results=response_object)
 
     def characters(self, params: api.CommonParams) -> api.MultiResponse[api.BaseCharacter]:
         raise NotImplementedError("Route not implemented by trunk")
@@ -155,40 +232,39 @@ class StaticDBTrunk(ComicTrunk):
     def volumes(self, params: api.FilterParams) -> api.MultiResponse[api.BaseVolume]:
         raise NotImplementedError("Route not implemented by trunk")
 
-
     ## The trunk only supports comic data
-    def episode(self, item_id: int, params: api.CommonParams) -> api.CVResponse:
+    def episode(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.BaseModelExtra]:
         raise NotImplementedError("Route not implemented by trunk")
 
-    def episodes(self, params: api.CommonParams) -> api.CVResponse:
+    def episodes(self, params: api.CommonParams) -> api.MultiResponse[api.BaseModelExtra]:
         raise NotImplementedError("Route not implemented by trunk")
 
-    def movie(self, item_id: int, params: api.CommonParams) -> api.CVResponse:
+    def movie(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.BaseModelExtra]:
         raise NotImplementedError("Route not implemented by trunk")
 
-    def movies(self, params: api.CommonParams) -> api.CVResponse:
+    def movies(self, params: api.CommonParams) -> api.MultiResponse[api.BaseModelExtra]:
         raise NotImplementedError("Route not implemented by trunk")
 
-    def series(self, item_id: int, params: api.CommonParams) -> api.CVResponse:
+    def series(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.BaseModelExtra]:
         raise NotImplementedError("Route not implemented by trunk")
 
-    def series_list(self, params: api.CommonParams) -> api.CVResponse:
+    def series_list(self, params: api.CommonParams) -> api.MultiResponse[api.BaseModelExtra]:
         raise NotImplementedError("Route not implemented by trunk")
 
-    def video(self, item_id: int, params: api.CommonParams) -> api.CVResponse:
+    def video(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.BaseModelExtra]:
         raise NotImplementedError("Route not implemented by trunk")
 
-    def videos(self, params: api.CommonParams) -> api.CVResponse:
+    def videos(self, params: api.CommonParams) -> api.MultiResponse[api.BaseModelExtra]:
         raise NotImplementedError("Route not implemented by trunk")
 
-    def video_type(self, item_id: int, params: api.CommonParams) -> api.CVResponse:
+    def video_type(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.BaseModelExtra]:
         raise NotImplementedError("Route not implemented by trunk")
 
-    def video_types(self, params: api.CommonParams) -> api.CVResponse:
+    def video_types(self, params: api.CommonParams) -> api.MultiResponse[api.BaseModelExtra]:
         raise NotImplementedError("Route not implemented by trunk")
 
-    def video_category(self, item_id: int, params: api.CommonParams) -> api.CVResponse:
+    def video_category(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.BaseModelExtra]:
         raise NotImplementedError("Route not implemented by trunk")
 
-    def video_categories(self, params: api.CommonParams) -> api.CVResponse:
+    def video_categories(self, params: api.CommonParams) -> api.MultiResponse[api.BaseModelExtra]:
         raise NotImplementedError("Route not implemented by trunk")

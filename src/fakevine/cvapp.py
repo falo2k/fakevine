@@ -12,9 +12,7 @@ from fakevine.models.cvapimodels import (
     CommonParams,
     CVResponse,
     FilterParams,
-    MultiResponse,
     SearchParams,
-    SingleResponse,
     validate_field_list,
     validate_filter_list,
     validate_sort_order,
@@ -30,6 +28,8 @@ from fakevine.trunks.comic_trunk import (
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+    from pydantic import BaseModel
 
 
 class CVApp:
@@ -191,11 +191,6 @@ class CVApp:
             data = self.DEADEND_RESPONSE
         else:
             try:
-                field_list = None
-                if hasattr(params, 'field_list') and params.field_list is not None:
-                    field_list = params.field_list
-                    params.field_list = None
-
                 data = trunk_method(params=params) if item_id is None else trunk_method(item_id=item_id, params=params)
 
             except (RateLimitError, AuthenticationError, RequestLimitError, GatewayError) as ex:
@@ -214,23 +209,6 @@ class CVApp:
                     status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                     content=jsonable_encoder({"errors": ex.errors()}),
                 )
-
-            # TODO@falo2k: I'm not really a fan of doing this in this way, but it's currently the best/simplest comromise.
-            # https://github.com/falo2k/fakevine/issues/19
-            if isinstance(data, (MultiResponse, SingleResponse)):
-                if field_list is not None and (isinstance(data, MultiResponse)):
-                    json_data = jsonable_encoder(data)
-                    for result_index in range(len(json_data['results'])):
-                        json_data['results'][result_index] = \
-                            {k:v for k,v in json_data['results'][result_index].items() if k in field_list.split(',')}
-                    return json_data
-
-                if field_list is not None and (isinstance(data, SingleResponse)):
-                    json_data = jsonable_encoder(data)
-                    json_data['results'] = {k:v for k,v in json_data['results'].items() if k in field_list.split(',')}
-                    return json_data
-
-                return data
 
             # TODO@falo2k:  Process conversion of responses into other formats
             # https://github.com/falo2k/fakevine/issues/2
@@ -251,7 +229,7 @@ class CVApp:
         if params.query is None:
             return CVApp.OBJECT_NOT_FOUND
 
-        search_models: list[type[cvapimodels.BaseModel]]= [
+        search_models: list[type[cvapimodels.BaseModelExtra]]= [
             cvapimodels.BaseCharacter,
             cvapimodels.BaseConcept,
             cvapimodels.BaseIssue,

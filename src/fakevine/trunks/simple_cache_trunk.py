@@ -1,9 +1,6 @@
 # ruff: noqa: F403, F405, D102
-from typing import TypeVar
-
 import requests_cache
 from requests.adapters import HTTPAdapter
-from requests_cache import Response
 from requests_cache.backends.sqlite import SQLiteCache
 from urllib3.util import Retry
 
@@ -66,202 +63,161 @@ class SimpleCacheTrunk(ComicTrunk):
         self._session.mount('https://', HTTPAdapter(max_retries=retries))
         self._session.mount('http://', HTTPAdapter(max_retries=retries))
 
-    T = TypeVar('T', bound=CVResponse)
+    def _process_response(self, endpoint: str, params: CommonParams, response_collection: type[SingleResponse | MultiResponse], \
+                result_model: type[BaseModelExtra]) -> SingleResponse[type[BaseModelExtra]] | MultiResponse[type[BaseModelExtra]]:
+            params.api_key = self.cv_api_key
+            if params.field_list is None or params.field_list == []:
+                return_class = result_model
+            else:
+                field_list = params.field_list.split(',')
+                return_class = filtered_model(result_model, field_list)
 
-    def process_response(self, response: Response, model: type[T]) -> T:
+            response = self._session.get(f'{self.cv_api_url}{endpoint}', params=params, headers=self.headers)
+
+            if response.status_code != 200:  # noqa: PLR2004
+                if response.status_code in self.response_map:
+                    raise self.response_map[response.status_code]
+                error_string = f'Unsupported response from ComicVine: {response.status_code}'
+                raise UnsupportedResponseError(error_string)
+
+            return response_collection[return_class].model_validate(response.json())  # ty:ignore[invalid-return-type, unresolved-attribute]
+
+    def search(self, params: SearchParams) -> SearchResponse:
+        params.api_key = self.cv_api_key
+        response = self._session.get(f'{self.cv_api_url}/search', params=params, headers=self.headers)
+
         if response.status_code != 200:  # noqa: PLR2004
             if response.status_code in self.response_map:
                 raise self.response_map[response.status_code]
             error_string = f'Unsupported response from ComicVine: {response.status_code}'
             raise UnsupportedResponseError(error_string)
-        return model.model_validate(response.json())
+
+        if params.field_list is None or params.field_list == []:
+            return_class = SearchResponse
+        else:
+            field_list = params.field_list.split(',')
+            filtered_classes = \
+                filtered_model(DetailCharacter, field_list) | \
+                filtered_model(DetailConcept, field_list) | \
+                filtered_model(SearchIssue, field_list) | \
+                filtered_model(SearchObject, field_list) | \
+                filtered_model(SearchOrigin, field_list) | \
+                filtered_model(SearchPerson, field_list) | \
+                filtered_model(SearchPublisher, field_list) | \
+                filtered_model(SearchStoryArc, field_list) | \
+                filtered_model(SearchTeam, field_list) | \
+                filtered_model(SearchVolume, field_list) | \
+                filtered_model(BaseEntity, field_list)
+            return_class = MultiResponse[filtered_classes]  # ty:ignore[invalid-type-form]
+        return return_class.model_validate(response.json())
 
     def volume(self, item_id: int, params: CommonParams) -> SingleResponse[DetailVolume]:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/volume/4050-{item_id}', params=params, headers=self.headers)
-        return self.process_response(response, model=SingleResponse[DetailVolume])
+        return self._process_response(f'/volume/4050-{item_id}', params, SingleResponse, DetailVolume)  # ty:ignore[invalid-return-type]
 
     def volumes(self, params: FilterParams) -> MultiResponse[BaseVolume]:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/volumes', params=params, headers=self.headers)
-        return self.process_response(response, model=MultiResponse[BaseVolume])
-
-    def search(self, params: SearchParams) -> SearchResponse:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/search', params=params, headers=self.headers)
-        return self.process_response(response, model=SearchResponse)
+        return self._process_response('/volumes', params, MultiResponse, BaseVolume)  # ty:ignore[invalid-return-type]
 
     def character(self, item_id: int, params: CommonParams) -> SingleResponse[DetailCharacter]:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/character/4005-{item_id}', params=params, headers=self.headers)
-        return self.process_response(response, model=SingleResponse[DetailCharacter])
+        return self._process_response(f'/character/4005-{item_id}', params, SingleResponse, DetailCharacter)  # ty:ignore[invalid-return-type]
 
     def characters(self, params: CommonParams) -> MultiResponse[BaseCharacter]:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/characters', params=params, headers=self.headers)
-        return self.process_response(response, model=MultiResponse[BaseCharacter])
+        return self._process_response('/characters', params, MultiResponse, BaseCharacter)  # ty:ignore[invalid-return-type]
 
     def concept(self, item_id: int, params: CommonParams) -> SingleResponse[DetailConcept]:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/concept/4015-{item_id}', params=params, headers=self.headers)
-        return self.process_response(response, model=SingleResponse[DetailConcept])
+        return self._process_response(f'/concept/4015-{item_id}', params, SingleResponse, DetailConcept)  # ty:ignore[invalid-return-type]
 
     def concepts(self, params: CommonParams) -> MultiResponse[BaseConcept]:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/concepts', params=params, headers=self.headers)
-        return self.process_response(response, model=MultiResponse[BaseConcept])
+        return self._process_response('/concepts', params, MultiResponse, BaseConcept)  # ty:ignore[invalid-return-type]
 
-    def episode(self, item_id: int, params: CommonParams) -> CVResponse:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/episode/4070-{item_id}', params=params, headers=self.headers)
-        return self.process_response(response, model=CVResponse)
+    def episode(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
+        return self._process_response(f'/episode/4070-{item_id}', params, SingleResponse, BaseModelExtra)  # ty:ignore[invalid-return-type]
 
-    def episodes(self, params: CommonParams) -> CVResponse:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/episodes', params=params, headers=self.headers)
-        return self.process_response(response, model=CVResponse)
+    def episodes(self, params: CommonParams) -> MultiResponse[BaseModelExtra]:
+        return self._process_response('/episodes', params, MultiResponse, BaseModelExtra)  # ty:ignore[invalid-return-type]
 
     def issue(self, item_id: int, params: CommonParams) -> SingleResponse[DetailIssue]:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/issue/4000-{item_id}', params=params, headers=self.headers)
-        return self.process_response(response, model=SingleResponse[DetailIssue])
+        return self._process_response(f'/issue/4000-{item_id}', params, SingleResponse, DetailIssue)  # ty:ignore[invalid-return-type]
 
     def issues(self, params: CommonParams) -> MultiResponse[BaseIssue]:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/issues', params=params, headers=self.headers)
-        return self.process_response(response, model=MultiResponse[BaseIssue])
+        return self._process_response('/issues', params, MultiResponse, BaseIssue)  # ty:ignore[invalid-return-type]
 
     def location(self, item_id: int, params: CommonParams) -> SingleResponse[DetailLocation]:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/location/4020-{item_id}', params=params, headers=self.headers)
-        return self.process_response(response, model=SingleResponse[DetailLocation])
+        return self._process_response(f'/location/4020-{item_id}', params, SingleResponse, DetailLocation)  # ty:ignore[invalid-return-type]
 
     def locations(self, params: CommonParams) -> MultiResponse[BaseLocation]:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/locations', params=params, headers=self.headers)
-        return self.process_response(response, model=MultiResponse[BaseLocation])
+        return self._process_response('/locations', params, MultiResponse, BaseLocation)  # ty:ignore[invalid-return-type]
 
-    def movie(self, item_id: int, params: CommonParams) -> CVResponse:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/movie/4025-{item_id}', params=params, headers=self.headers)
-        return self.process_response(response, model=CVResponse)
+    def movie(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
+        return self._process_response(f'/movie/4025-{item_id}', params, SingleResponse, BaseModelExtra)  # ty:ignore[invalid-return-type]
 
-    def movies(self, params: CommonParams) -> CVResponse:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/movies', params=params, headers=self.headers)
-        return self.process_response(response, model=CVResponse)
+    def movies(self, params: CommonParams) -> MultiResponse[BaseModelExtra]:
+        return self._process_response('/movies', params, MultiResponse, BaseModelExtra)  # ty:ignore[invalid-return-type]
 
     def object(self, item_id: int, params: CommonParams) -> SingleResponse[DetailObject]:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/object/4055-{item_id}', params=params,headers=self.headers)
-        return self.process_response(response, model=SingleResponse[DetailObject])
+        return self._process_response(f'/object/4055-{item_id}', params, SingleResponse, DetailObject)  # ty:ignore[invalid-return-type]
 
     def objects(self, params: CommonParams) -> MultiResponse[BaseObject]:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/objects', params=params,headers=self.headers)
-        return self.process_response(response, model=MultiResponse[BaseObject])
+        return self._process_response('/objects', params, MultiResponse, BaseObject)  # ty:ignore[invalid-return-type]
 
     def origin(self, item_id: int, params: CommonParams) -> SingleResponse[DetailOrigin]:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/origin/4030-{item_id}', params=params,headers=self.headers)
-        return self.process_response(response, model=SingleResponse[DetailOrigin])
+        return self._process_response(f'/origin/4030-{item_id}', params, SingleResponse, DetailOrigin)  # ty:ignore[invalid-return-type]
 
     def origins(self, params: CommonParams) -> MultiResponse[BaseOrigin]:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/origins', params=params,headers=self.headers)
-        return self.process_response(response, model=MultiResponse[BaseOrigin])
+        return self._process_response('/origins', params, MultiResponse, BaseOrigin)  # ty:ignore[invalid-return-type]
 
     def person(self, item_id: int, params: CommonParams) -> SingleResponse[DetailPerson]:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/person/4040-{item_id}', params=params,headers=self.headers)
-        return self.process_response(response, model=SingleResponse[DetailPerson])
+        return self._process_response(f'/person/4040-{item_id}', params, SingleResponse, DetailPerson)  # ty:ignore[invalid-return-type]
 
     def people(self, params: CommonParams) -> MultiResponse[BasePerson]:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/people', params=params,headers=self.headers)
-        return self.process_response(response, model=MultiResponse[BasePerson])
+        return self._process_response('/people', params, MultiResponse, BasePerson)  # ty:ignore[invalid-return-type]
 
     def power(self, item_id: int, params: CommonParams) -> SingleResponse[DetailPower]:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/power/4035-{item_id}', params=params,headers=self.headers)
-        return self.process_response(response, model=SingleResponse[DetailPower])
+        return self._process_response(f'/power/4035-{item_id}', params, SingleResponse, DetailPower)  # ty:ignore[invalid-return-type]
 
     def powers(self, params: CommonParams) -> MultiResponse[BasePower]:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/powers', params=params,headers=self.headers)
-        return self.process_response(response, model=MultiResponse[BasePower])
+        return self._process_response('/powers', params, MultiResponse, BasePower)  # ty:ignore[invalid-return-type]
 
     def publisher(self, item_id: int, params: CommonParams) -> SingleResponse[DetailPublisher]:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/publisher/4010-{item_id}', params=params,headers=self.headers)
-        return self.process_response(response, model=SingleResponse[DetailPublisher])
+        return self._process_response(f'/publisher/4010-{item_id}', params, SingleResponse, DetailPublisher)  # ty:ignore[invalid-return-type]
 
     def publishers(self, params: CommonParams) -> MultiResponse[BasePublisher]:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/publishers', params=params,headers=self.headers)
-        return self.process_response(response, model=MultiResponse[BasePublisher])
+        return self._process_response('/publishers', params, MultiResponse, BasePublisher)  # ty:ignore[invalid-return-type]
 
-    def series(self, item_id: int, params: CommonParams) -> CVResponse:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/series/4075-{item_id}', params=params,headers=self.headers)
-        return self.process_response(response, model=CVResponse)
+    def series(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
+        return self._process_response(f'/series/4075-{item_id}', params, SingleResponse, BaseModelExtra)  # ty:ignore[invalid-return-type]
 
-    def series_list(self, params: CommonParams) -> CVResponse:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/series_list', params=params,headers=self.headers)
-        return self.process_response(response, model=CVResponse)
+    def series_list(self, params: CommonParams) -> MultiResponse[BaseModelExtra]:
+        return self._process_response('/series_list', params, MultiResponse, BaseModelExtra)  # ty:ignore[invalid-return-type]
 
     def story_arc(self, item_id: int, params: CommonParams) -> SingleResponse[DetailStoryArc]:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/story_arc/4045-{item_id}', params=params,headers=self.headers)
-        return self.process_response(response, model=SingleResponse[DetailStoryArc])
+        return self._process_response(f'/story_arc/4045-{item_id}', params, SingleResponse, DetailStoryArc)  # ty:ignore[invalid-return-type]
 
     def story_arcs(self, params: CommonParams) -> MultiResponse[BaseStoryArc]:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/story_arcs', params=params, headers=self.headers)
-        return self.process_response(response, model=MultiResponse[BaseStoryArc])
+        return self._process_response('/story_arcs', params, MultiResponse, BaseStoryArc)  # ty:ignore[invalid-return-type]
 
     def team(self, item_id: int, params: CommonParams) -> SingleResponse[DetailTeam]:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/team/4060-{item_id}', params=params, headers=self.headers)
-        return self.process_response(response, model=SingleResponse[DetailTeam])
+        return self._process_response(f'/team/4060-{item_id}', params, SingleResponse, DetailTeam)  # ty:ignore[invalid-return-type]
 
     def teams(self, params: CommonParams) -> MultiResponse[BaseTeam]:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/teams', params=params, headers=self.headers)
-        return self.process_response(response, model=MultiResponse[BaseTeam])
+        return self._process_response('/teams', params, MultiResponse, BaseTeam)  # ty:ignore[invalid-return-type]
 
     def types(self, params: CommonParams) -> MultiResponse[BaseTypes]:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/types', params=params, headers=self.headers)
-        return self.process_response(response, model=MultiResponse[BaseTypes])
+        return self._process_response('/types', params, MultiResponse, BaseTypes)  # ty:ignore[invalid-return-type]
 
-    def video(self, item_id: int, params: CommonParams) -> CVResponse:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/video/2300-{item_id}', params=params, headers=self.headers)
-        return self.process_response(response, model=CVResponse)
+    def video(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
+        return self._process_response(f'/video/2300-{item_id}', params, SingleResponse, BaseModelExtra)  # ty:ignore[invalid-return-type]
 
-    def videos(self, params: CommonParams) -> CVResponse:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/videos', params=params, headers=self.headers)
-        return self.process_response(response, model=CVResponse)
+    def videos(self, params: CommonParams) -> MultiResponse[BaseModelExtra]:
+        return self._process_response('/videos', params, MultiResponse, BaseModelExtra)  # ty:ignore[invalid-return-type]
 
-    def video_type(self, item_id: int, params: CommonParams) -> CVResponse:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/video_type/2320-{item_id}', params=params, headers=self.headers)
-        return self.process_response(response, model=CVResponse)
+    def video_type(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
+        return self._process_response(f'/video_type/2320-{item_id}', params, SingleResponse, BaseModelExtra)  # ty:ignore[invalid-return-type]
 
-    def video_types(self, params: CommonParams) -> CVResponse:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/video_types', params=params, headers=self.headers)
-        return self.process_response(response, model=CVResponse)
+    def video_types(self, params: CommonParams) -> MultiResponse[BaseModelExtra]:
+        return self._process_response('/video_types', params, MultiResponse, BaseModelExtra)  # ty:ignore[invalid-return-type]
 
-    def video_category(self, item_id: int, params: CommonParams) -> CVResponse:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/video_category/2320-{item_id}', params=params, headers=self.headers)
-        return self.process_response(response, model=CVResponse)
+    def video_category(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
+        return self._process_response(f'/video_category/2320-{item_id}', params, SingleResponse, BaseModelExtra)  # ty:ignore[invalid-return-type]
 
-    def video_categories(self, params: CommonParams) -> CVResponse:
-        params.api_key = self.cv_api_key
-        response = self._session.get(f'{self.cv_api_url}/video_categories', params=params, headers=self.headers)
-        return self.process_response(response, model=CVResponse)
+    def video_categories(self, params: CommonParams) -> MultiResponse[BaseModelExtra]:
+        return self._process_response('/video_categories', params, MultiResponse, BaseModelExtra)  # ty:ignore[invalid-return-type]

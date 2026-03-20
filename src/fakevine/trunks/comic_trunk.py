@@ -27,6 +27,11 @@ class ComicTrunk(ABC):
     This class provides an interface for interacting with various ComicVine
     data sources and defines the required methods for fetching volume, issue,
     and related information.
+
+    While all methods should return a particular model, if a field_list is defined
+    in request params, you may need to use the utility methods filtered_model or
+    optional_model provided in cvapimodels to avoid parsing errors.
+
     """
 
     @abstractmethod
@@ -58,11 +63,11 @@ class ComicTrunk(ABC):
         ...
 
     @abstractmethod
-    def episode(self, item_id: int, params: CommonParams) -> CVResponse:
+    def episode(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
         ...
 
     @abstractmethod
-    def episodes(self, params: CommonParams) -> CVResponse:
+    def episodes(self, params: CommonParams) -> MultiResponse[BaseModelExtra]:
         ...
 
     @abstractmethod
@@ -82,11 +87,11 @@ class ComicTrunk(ABC):
         ...
 
     @abstractmethod
-    def movie(self, item_id: int, params: CommonParams) -> CVResponse:
+    def movie(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
         ...
 
     @abstractmethod
-    def movies(self, params: CommonParams) -> CVResponse:
+    def movies(self, params: CommonParams) -> MultiResponse[BaseModelExtra]:
         ...
 
     @abstractmethod
@@ -130,11 +135,11 @@ class ComicTrunk(ABC):
         ...
 
     @abstractmethod
-    def series(self, item_id: int, params: CommonParams) -> CVResponse:
+    def series(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
         ...
 
     @abstractmethod
-    def series_list(self, params: CommonParams) -> CVResponse:
+    def series_list(self, params: CommonParams) -> MultiResponse[BaseModelExtra]:
         ...
 
     @abstractmethod
@@ -154,27 +159,27 @@ class ComicTrunk(ABC):
         ...
 
     @abstractmethod
-    def video(self, item_id: int, params: CommonParams) -> CVResponse:
+    def video(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
         ...
 
     @abstractmethod
-    def videos(self, params: CommonParams) -> CVResponse:
+    def videos(self, params: CommonParams) -> MultiResponse[BaseModelExtra]:
         ...
 
     @abstractmethod
-    def video_type(self, item_id: int, params: CommonParams) -> CVResponse:
+    def video_type(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
         ...
 
     @abstractmethod
-    def video_types(self, params: CommonParams) -> CVResponse:
+    def video_types(self, params: CommonParams) -> MultiResponse[BaseModelExtra]:
         ...
 
     @abstractmethod
-    def video_category(self, item_id: int, params: CommonParams) -> CVResponse:
+    def video_category(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
         ...
 
     @abstractmethod
-    def video_categories(self, params: CommonParams) -> CVResponse:
+    def video_categories(self, params: CommonParams) -> MultiResponse[BaseModelExtra]:
         ...
 
     def types(self, params: CommonParams) -> MultiResponse[BaseTypes]:  # noqa: ARG002

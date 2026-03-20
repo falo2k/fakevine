@@ -302,10 +302,10 @@ class TestCVResponse:
         with pytest.raises(ValidationError):
             CVResponse(limit=101)
 
-    def test_cvresponse_extra_fields_allowed(self):
-        """Test CVResponse allows extra fields per ConfigDict."""
+    def test_cvresponse_extra_fields_disallowed(self):
+        """Test CVResponse disallows extra fields per ConfigDict."""
         r = CVResponse(extra_field="value")  # ty:ignore[unknown-argument]
-        assert r.extra_field == "value"  # ty:ignore[unresolved-attribute]
+        assert not hasattr(r,'extra_field')
 
 
 # ---------------------------------------------------------------------------

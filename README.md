@@ -4,18 +4,18 @@ Project is still in core development, so may have some refactoring in the short 
 # FakeVine
 This is a ComicVine compatible API package that can serve comic metadata using the same endpoints provided by the [ComicVine API](https://comicvine.gamespot.com/api/documentation).  With an appropriate backend, it can act as a cache for ComicVine API calls, a mock instance for testing comics applications, or a host for serving from static data dumps.
 
-It is built on FastAPI and anger.
+It is built on FastAPI and anger. :rage1:
 
-Some responses are not exact copies - CV returns a webpage for some HTTP error codes that are not replicated as you should be using the status code.  There are also some documented CV endpoints that are intentionally not implemented for the backends as they are either not properly implemented on CV's end or just have junk data.  They should really be avoided by consumers and will return bad responses.  These are `/chat`, `/chats`, `/promo`, & `/promos`.  Another error scenario that I have handled differently is how CV responds to junk in `field_list`, `sort`, and `filter`.  Their behaviour is as close as possible to default CV behaviour, but if they get proper junk then CV sends just as bad back, and I avoid this by doing some pre-cleaning of these params in the app.
+Some responses are not exact copies - CV returns a webpage for some HTTP error codes that are not replicated as you should be using the status code.  There are also some documented CV endpoints that are intentionally not implemented for the backends as they are either not properly implemented on CV's end or just have junk data.  They should really be avoided by consumers and will return bad responses.  These are `/chat`, `/chats`, `/promo`, & `/promos`.  Another error scenario that I have handled differently is how CV responds to junk in `field_list`, `sort`, and `filter`.  Their behaviour is as close as possible to default CV behaviour, but if they get proper junk then CV sends just as bad back, and I avoid this by doing some pre-cleaning of these params in the app.  Sort orders of list elements will depend on the trunk used and guesswork.  This should only really matter for `/story_arc` issues as they are not returned with an ordering attribute, but then that data is generally trash quality anyway :man_shrugging:.
 
 The models are based on the [CV API documentation](https://comicvine.gamespot.com/api/documentation), and analysing actual CV data.  If it deviates from the documentation, that is likely because the documentation is wrong - e.g. no, [`/teams`](https://comicvine.gamespot.com/api/documentation#toc-0-34) is not filterable on `aliases`.  You may notice that there are a lot of nullable fields in the CV response models.  These reflect the real state of CV data rather than an ideal view of what could be (e.g. the API will serve empty volumes).  At the time of writing, I've only done models for the comic elements in the API as that's where I believe most use comes from.  It's possible that some validation will fail because of some unforseen futzery in ComicVine's data (if using as a cache) - please do report any such issues you find!  I have used these models to parse responses across all detail (single response) endpoints from CV without failures.
 
 ## Features
-*Current:*
+:thumbsup: **Current:**
 - A single backend offering a simple sqlite backed cache for ComicVine
 - JSON responses only
 
-*Planned:*
+:writing_hand: **Planned:**
 - Support for response types other than JSON
 - A backend to serve data from a SQLite database
 - A backend to serve data from a JSON file (mostly to support smaller test scenarios)
@@ -25,7 +25,7 @@ The models are based on the [CV API documentation](https://comicvine.gamespot.co
 - Docker image
 - Healthcheck for the app and trunks, primarily for Docker to monitor
 
-*Unplanned:*
+:thumbsdown: **Unplanned:**
 - Request caching.  You can add a service like Caddy's [cache-handler](https://github.com/caddyserver/cache-handler) in front.
 
 ## Running The App
