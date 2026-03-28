@@ -51,7 +51,7 @@ class ComicTrunk(ABC):
         ...
 
     @abstractmethod
-    def characters(self, params: CommonParams) -> MultiResponse[BaseCharacter]:
+    def characters(self, params: FilterParams) -> MultiResponse[BaseCharacter]:
         ...
 
     @abstractmethod
@@ -59,7 +59,7 @@ class ComicTrunk(ABC):
         ...
 
     @abstractmethod
-    def concepts(self, params: CommonParams) -> MultiResponse[BaseConcept]:
+    def concepts(self, params: FilterParams) -> MultiResponse[BaseConcept]:
         ...
 
     @abstractmethod
@@ -67,7 +67,7 @@ class ComicTrunk(ABC):
         ...
 
     @abstractmethod
-    def episodes(self, params: CommonParams) -> MultiResponse[BaseModelExtra]:
+    def episodes(self, params: FilterParams) -> MultiResponse[BaseModelExtra]:
         ...
 
     @abstractmethod
@@ -75,7 +75,7 @@ class ComicTrunk(ABC):
         ...
 
     @abstractmethod
-    def issues(self, params: CommonParams) -> MultiResponse[BaseIssue]:
+    def issues(self, params: FilterParams) -> MultiResponse[BaseIssue]:
         ...
 
     @abstractmethod
@@ -83,7 +83,7 @@ class ComicTrunk(ABC):
         ...
 
     @abstractmethod
-    def locations(self, params: CommonParams) -> MultiResponse[BaseLocation]:
+    def locations(self, params: FilterParams) -> MultiResponse[BaseLocation]:
         ...
 
     @abstractmethod
@@ -91,7 +91,7 @@ class ComicTrunk(ABC):
         ...
 
     @abstractmethod
-    def movies(self, params: CommonParams) -> MultiResponse[BaseModelExtra]:
+    def movies(self, params: FilterParams) -> MultiResponse[BaseModelExtra]:
         ...
 
     @abstractmethod
@@ -99,7 +99,7 @@ class ComicTrunk(ABC):
         ...
 
     @abstractmethod
-    def objects(self, params: CommonParams) -> MultiResponse[BaseObject]:
+    def objects(self, params: FilterParams) -> MultiResponse[BaseObject]:
         ...
 
     @abstractmethod
@@ -107,7 +107,7 @@ class ComicTrunk(ABC):
         ...
 
     @abstractmethod
-    def origins(self, params: CommonParams) -> MultiResponse[BaseOrigin]:
+    def origins(self, params: FilterParams) -> MultiResponse[BaseOrigin]:
         ...
 
     @abstractmethod
@@ -115,7 +115,7 @@ class ComicTrunk(ABC):
         ...
 
     @abstractmethod
-    def people(self, params: CommonParams) -> MultiResponse[BasePerson]:
+    def people(self, params: FilterParams) -> MultiResponse[BasePerson]:
         ...
 
     @abstractmethod
@@ -123,7 +123,7 @@ class ComicTrunk(ABC):
         ...
 
     @abstractmethod
-    def powers(self, params: CommonParams) -> MultiResponse[BasePower]:
+    def powers(self, params: FilterParams) -> MultiResponse[BasePower]:
         ...
 
     @abstractmethod
@@ -131,7 +131,7 @@ class ComicTrunk(ABC):
         ...
 
     @abstractmethod
-    def publishers(self, params: CommonParams) -> MultiResponse[BasePublisher]:
+    def publishers(self, params: FilterParams) -> MultiResponse[BasePublisher]:
         ...
 
     @abstractmethod
@@ -139,7 +139,7 @@ class ComicTrunk(ABC):
         ...
 
     @abstractmethod
-    def series_list(self, params: CommonParams) -> MultiResponse[BaseModelExtra]:
+    def series_list(self, params: FilterParams) -> MultiResponse[BaseModelExtra]:
         ...
 
     @abstractmethod
@@ -147,7 +147,7 @@ class ComicTrunk(ABC):
         ...
 
     @abstractmethod
-    def story_arcs(self, params: CommonParams) -> MultiResponse[BaseStoryArc]:
+    def story_arcs(self, params: FilterParams) -> MultiResponse[BaseStoryArc]:
         ...
 
     @abstractmethod
@@ -155,7 +155,7 @@ class ComicTrunk(ABC):
         ...
 
     @abstractmethod
-    def teams(self, params: CommonParams) -> MultiResponse[BaseTeam]:
+    def teams(self, params: FilterParams) -> MultiResponse[BaseTeam]:
         ...
 
     @abstractmethod
@@ -163,7 +163,7 @@ class ComicTrunk(ABC):
         ...
 
     @abstractmethod
-    def videos(self, params: CommonParams) -> MultiResponse[BaseModelExtra]:
+    def videos(self, params: FilterParams) -> MultiResponse[BaseModelExtra]:
         ...
 
     @abstractmethod
@@ -171,7 +171,7 @@ class ComicTrunk(ABC):
         ...
 
     @abstractmethod
-    def video_types(self, params: CommonParams) -> MultiResponse[BaseModelExtra]:
+    def video_types(self, params: FilterParams) -> MultiResponse[BaseModelExtra]:
         ...
 
     @abstractmethod
@@ -179,7 +179,7 @@ class ComicTrunk(ABC):
         ...
 
     @abstractmethod
-    def video_categories(self, params: CommonParams) -> MultiResponse[BaseModelExtra]:
+    def video_categories(self, params: FilterParams) -> MultiResponse[BaseModelExtra]:
         ...
 
     def types(self, params: CommonParams) -> MultiResponse[BaseTypes]:  # noqa: ARG002

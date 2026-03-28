@@ -68,9 +68,9 @@ def split_and_validate_filter_list(value: str | None, model: type[BaseModelExtra
         try:
             if split_sort[0] in datetime_fields:
                 dates = split_sort[1].split('|',maxsplit=1)
-                dates[0] = check_and_fix_date_fields(dates[0])
+                dates[0] = fix_date_string(dates[0])
                 if len(dates) > 1:
-                    dates[1] = check_and_fix_date_fields(dates[1])
+                    dates[1] = fix_date_string(dates[1])
 
                 split_sort[1] = '|'.join(dates)
         except ValueError:
@@ -81,20 +81,36 @@ def split_and_validate_filter_list(value: str | None, model: type[BaseModelExtra
 
     return None if len(items) == 0 else items
 
-def check_and_fix_date_fields(date_string: str) -> str:
-    """Validate and normlalise date/datetime strings from requests."""
-    # ruff: disable[DTZ007]
-    format_strings = {
-        '%Y-%m-%d %H:%M:%S': '%Y-%m-%d %H:%M:%S',
-        '%Y-%m-%d %H:%M:': '%Y-%m-%d %H:%M:%S',
-        '%Y-%m-%d %H:%M': '%Y-%m-%d %H:%M:%S',
-        '%Y-%m-%d %H:': '%Y-%m-%d %H:%M:%S',
-        '%Y-%m-%d %H': '%Y-%m-%d %H:%M:%S',
-        '%Y-%m-%d': '%Y-%m-%d',
+_date_format_strings = {
+        '%Y-%m-%d %H:%M:%S': ('%Y-%m-%d %H:%M:%S', False),
+        '%Y-%m-%d %H:%M:': ('%Y-%m-%d %H:%M:%S', False),
+        '%Y-%m-%d %H:%M': ('%Y-%m-%d %H:%M:%S', False),
+        '%Y-%m-%d %H:': ('%Y-%m-%d %H:%M:%S', False),
+        '%Y-%m-%d %H': ('%Y-%m-%d %H:%M:%S', False),
+        '%Y-%m-%d': ('%Y-%m-%d', True),
     }
 
+def parse_date_string(date_string: str) -> datetime.datetime | datetime.date:
+    """Validate and normlalise date/datetime strings from requests."""
+    # ruff: disable[DTZ007]
+
     date_string = date_string.strip()
-    for test_format, output_format in format_strings.items():
+    for test_format, (_, as_date) in _date_format_strings.items():
+        try:
+            parsed_dt = datetime.datetime.strptime(date_string, test_format)
+            return parsed_dt.date() if as_date else parsed_dt
+        except ValueError:
+            continue
+
+    # ruff: enable[DTZ007]
+    raise ValueError
+
+def fix_date_string(date_string: str) -> str:
+    """Validate and normlalise date/datetime strings from requests."""
+    # ruff: disable[DTZ007]
+
+    date_string = date_string.strip()
+    for test_format, (output_format,_) in _date_format_strings.items():
         try:
             parsed_date = datetime.datetime.strptime(date_string, test_format)
             return parsed_date.strftime(output_format)
@@ -323,12 +339,12 @@ class AssociatedImages(BaseModel):
 class BaseIssue(BaseEntity):
     associated_images: list[AssociatedImages] = []
     cover_date: Annotated[str | None, 'Response format is %Y-%m-%d but the filter format can be anything up to %Y-%m-%d %H:%M:%S',
-    FieldType.Sortable, FieldType.Filterable, FieldType.DateTime]
-    has_staff_review: Literal[False] | SiteLinkedEntity
-    issue_number: Annotated[str | None, FieldType.Filterable, FieldType.Sortable] # Unbelievable this can be empty. "Mature data source"
+    FieldType.Sortable, FieldType.Filterable, FieldType.DateTime] = None
+    has_staff_review: Literal[False] | SiteLinkedEntity = False
+    issue_number: Annotated[str | None, FieldType.Filterable, FieldType.Sortable] = None
     store_date: Annotated[str | None, 'Response format is %Y-%m-%d but the filter format can be anything up to %Y-%m-%d %H:%M:%S',
-        FieldType.Sortable, FieldType.Filterable, FieldType.DateTime]
-    volume: Annotated[SiteLinkedEntity | None, FieldType.Filterable]
+        FieldType.Sortable, FieldType.Filterable, FieldType.DateTime] = None
+    volume: Annotated[SiteLinkedEntity | None, FieldType.Filterable] = None
 
 class PersonCredits(SiteLinkedEntity):
     role: str

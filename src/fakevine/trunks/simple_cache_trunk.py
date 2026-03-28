@@ -120,85 +120,85 @@ class SimpleCacheTrunk(ComicTrunk):
     def character(self, item_id: int, params: CommonParams) -> SingleResponse[DetailCharacter]:
         return self._process_response(f'/character/4005-{item_id}', params, SingleResponse, DetailCharacter)  # ty:ignore[invalid-return-type]
 
-    def characters(self, params: CommonParams) -> MultiResponse[BaseCharacter]:
+    def characters(self, params: FilterParams) -> MultiResponse[BaseCharacter]:
         return self._process_response('/characters', params, MultiResponse, BaseCharacter)  # ty:ignore[invalid-return-type]
 
     def concept(self, item_id: int, params: CommonParams) -> SingleResponse[DetailConcept]:
         return self._process_response(f'/concept/4015-{item_id}', params, SingleResponse, DetailConcept)  # ty:ignore[invalid-return-type]
 
-    def concepts(self, params: CommonParams) -> MultiResponse[BaseConcept]:
+    def concepts(self, params: FilterParams) -> MultiResponse[BaseConcept]:
         return self._process_response('/concepts', params, MultiResponse, BaseConcept)  # ty:ignore[invalid-return-type]
 
     def episode(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
         return self._process_response(f'/episode/4070-{item_id}', params, SingleResponse, BaseModelExtra)  # ty:ignore[invalid-return-type]
 
-    def episodes(self, params: CommonParams) -> MultiResponse[BaseModelExtra]:
+    def episodes(self, params: FilterParams) -> MultiResponse[BaseModelExtra]:
         return self._process_response('/episodes', params, MultiResponse, BaseModelExtra)  # ty:ignore[invalid-return-type]
 
     def issue(self, item_id: int, params: CommonParams) -> SingleResponse[DetailIssue]:
         return self._process_response(f'/issue/4000-{item_id}', params, SingleResponse, DetailIssue)  # ty:ignore[invalid-return-type]
 
-    def issues(self, params: CommonParams) -> MultiResponse[BaseIssue]:
+    def issues(self, params: FilterParams) -> MultiResponse[BaseIssue]:
         return self._process_response('/issues', params, MultiResponse, BaseIssue)  # ty:ignore[invalid-return-type]
 
     def location(self, item_id: int, params: CommonParams) -> SingleResponse[DetailLocation]:
         return self._process_response(f'/location/4020-{item_id}', params, SingleResponse, DetailLocation)  # ty:ignore[invalid-return-type]
 
-    def locations(self, params: CommonParams) -> MultiResponse[BaseLocation]:
+    def locations(self, params: FilterParams) -> MultiResponse[BaseLocation]:
         return self._process_response('/locations', params, MultiResponse, BaseLocation)  # ty:ignore[invalid-return-type]
 
     def movie(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
         return self._process_response(f'/movie/4025-{item_id}', params, SingleResponse, BaseModelExtra)  # ty:ignore[invalid-return-type]
 
-    def movies(self, params: CommonParams) -> MultiResponse[BaseModelExtra]:
+    def movies(self, params: FilterParams) -> MultiResponse[BaseModelExtra]:
         return self._process_response('/movies', params, MultiResponse, BaseModelExtra)  # ty:ignore[invalid-return-type]
 
     def object(self, item_id: int, params: CommonParams) -> SingleResponse[DetailObject]:
         return self._process_response(f'/object/4055-{item_id}', params, SingleResponse, DetailObject)  # ty:ignore[invalid-return-type]
 
-    def objects(self, params: CommonParams) -> MultiResponse[BaseObject]:
+    def objects(self, params: FilterParams) -> MultiResponse[BaseObject]:
         return self._process_response('/objects', params, MultiResponse, BaseObject)  # ty:ignore[invalid-return-type]
 
     def origin(self, item_id: int, params: CommonParams) -> SingleResponse[DetailOrigin]:
         return self._process_response(f'/origin/4030-{item_id}', params, SingleResponse, DetailOrigin)  # ty:ignore[invalid-return-type]
 
-    def origins(self, params: CommonParams) -> MultiResponse[BaseOrigin]:
+    def origins(self, params: FilterParams) -> MultiResponse[BaseOrigin]:
         return self._process_response('/origins', params, MultiResponse, BaseOrigin)  # ty:ignore[invalid-return-type]
 
     def person(self, item_id: int, params: CommonParams) -> SingleResponse[DetailPerson]:
         return self._process_response(f'/person/4040-{item_id}', params, SingleResponse, DetailPerson)  # ty:ignore[invalid-return-type]
 
-    def people(self, params: CommonParams) -> MultiResponse[BasePerson]:
+    def people(self, params: FilterParams) -> MultiResponse[BasePerson]:
         return self._process_response('/people', params, MultiResponse, BasePerson)  # ty:ignore[invalid-return-type]
 
     def power(self, item_id: int, params: CommonParams) -> SingleResponse[DetailPower]:
         return self._process_response(f'/power/4035-{item_id}', params, SingleResponse, DetailPower)  # ty:ignore[invalid-return-type]
 
-    def powers(self, params: CommonParams) -> MultiResponse[BasePower]:
+    def powers(self, params: FilterParams) -> MultiResponse[BasePower]:
         return self._process_response('/powers', params, MultiResponse, BasePower)  # ty:ignore[invalid-return-type]
 
     def publisher(self, item_id: int, params: CommonParams) -> SingleResponse[DetailPublisher]:
         return self._process_response(f'/publisher/4010-{item_id}', params, SingleResponse, DetailPublisher)  # ty:ignore[invalid-return-type]
 
-    def publishers(self, params: CommonParams) -> MultiResponse[BasePublisher]:
+    def publishers(self, params: FilterParams) -> MultiResponse[BasePublisher]:
         return self._process_response('/publishers', params, MultiResponse, BasePublisher)  # ty:ignore[invalid-return-type]
 
     def series(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
         return self._process_response(f'/series/4075-{item_id}', params, SingleResponse, BaseModelExtra)  # ty:ignore[invalid-return-type]
 
-    def series_list(self, params: CommonParams) -> MultiResponse[BaseModelExtra]:
+    def series_list(self, params: FilterParams) -> MultiResponse[BaseModelExtra]:
         return self._process_response('/series_list', params, MultiResponse, BaseModelExtra)  # ty:ignore[invalid-return-type]
 
     def story_arc(self, item_id: int, params: CommonParams) -> SingleResponse[DetailStoryArc]:
         return self._process_response(f'/story_arc/4045-{item_id}', params, SingleResponse, DetailStoryArc)  # ty:ignore[invalid-return-type]
 
-    def story_arcs(self, params: CommonParams) -> MultiResponse[BaseStoryArc]:
+    def story_arcs(self, params: FilterParams) -> MultiResponse[BaseStoryArc]:
         return self._process_response('/story_arcs', params, MultiResponse, BaseStoryArc)  # ty:ignore[invalid-return-type]
 
     def team(self, item_id: int, params: CommonParams) -> SingleResponse[DetailTeam]:
         return self._process_response(f'/team/4060-{item_id}', params, SingleResponse, DetailTeam)  # ty:ignore[invalid-return-type]
 
-    def teams(self, params: CommonParams) -> MultiResponse[BaseTeam]:
+    def teams(self, params: FilterParams) -> MultiResponse[BaseTeam]:
         return self._process_response('/teams', params, MultiResponse, BaseTeam)  # ty:ignore[invalid-return-type]
 
     def types(self, params: CommonParams) -> MultiResponse[BaseTypes]:
@@ -207,17 +207,17 @@ class SimpleCacheTrunk(ComicTrunk):
     def video(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
         return self._process_response(f'/video/2300-{item_id}', params, SingleResponse, BaseModelExtra)  # ty:ignore[invalid-return-type]
 
-    def videos(self, params: CommonParams) -> MultiResponse[BaseModelExtra]:
+    def videos(self, params: FilterParams) -> MultiResponse[BaseModelExtra]:
         return self._process_response('/videos', params, MultiResponse, BaseModelExtra)  # ty:ignore[invalid-return-type]
 
     def video_type(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
         return self._process_response(f'/video_type/2320-{item_id}', params, SingleResponse, BaseModelExtra)  # ty:ignore[invalid-return-type]
 
-    def video_types(self, params: CommonParams) -> MultiResponse[BaseModelExtra]:
+    def video_types(self, params: FilterParams) -> MultiResponse[BaseModelExtra]:
         return self._process_response('/video_types', params, MultiResponse, BaseModelExtra)  # ty:ignore[invalid-return-type]
 
     def video_category(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
         return self._process_response(f'/video_category/2320-{item_id}', params, SingleResponse, BaseModelExtra)  # ty:ignore[invalid-return-type]
 
-    def video_categories(self, params: CommonParams) -> MultiResponse[BaseModelExtra]:
+    def video_categories(self, params: FilterParams) -> MultiResponse[BaseModelExtra]:
         return self._process_response('/video_categories', params, MultiResponse, BaseModelExtra)  # ty:ignore[invalid-return-type]
