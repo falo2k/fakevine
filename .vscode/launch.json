@@ -13,6 +13,16 @@
             "cwd" : "${workspaceFolder}",
             "console": "integratedTerminal",
             "preLaunchTask": "uv_sync",
-        }
+        },
+        {
+            "name": "Python Debugger: Utils",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/fakevine/utils/__init__.py",
+            "cwd" : "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "preLaunchTask": "uv_sync",
+            "args" : ["convert-db","source.db", "output.db", "--overwrite"]
+        },
     ]
 }
