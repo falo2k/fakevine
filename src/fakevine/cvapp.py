@@ -197,7 +197,7 @@ class CVApp:
                 return self._exception_responses[type(ex)]  # ty:ignore[invalid-argument-type]
             except (UnsupportedResponseError, NotImplementedError) as ex:
                 error_msg = f"Response not handled ({trunk_method.__name__}): {ex}"  # ty:ignore[unresolved-attribute]
-                logger.error(error_msg)
+                logger.warning(error_msg)
                 return JSONResponse(status_code=status.HTTP_501_NOT_IMPLEMENTED, content={'error':error_msg})
             except ValidationError as ex:
                 for ex_error in ex.errors():

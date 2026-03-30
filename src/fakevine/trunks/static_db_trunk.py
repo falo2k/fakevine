@@ -660,7 +660,7 @@ class StaticDBTrunk(ComicTrunk):
         if 'volume_credits' in field_list:
             subq = select(db.Issue.volume_id).distinct() \
                     .select_from(db.IssueCredit).where(db.IssueCredit.person_id == db_record.id) \
-                    .join(db.Issue, db.Issue.id == db.IssueTeam.issue_id).subquery()
+                    .join(db.Issue, db.Issue.id == db.IssueCredit.issue_id).subquery()
             query: list = self.session.execute(
                 select(db.Volume.id, db.Volume.name, db.Volume.api_detail_url, db.Volume.site_detail_url) \
                     .join(subq, db.Volume.id == subq.c.volume_id)).all()
