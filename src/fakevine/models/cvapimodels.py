@@ -218,6 +218,7 @@ class CommonParams(BaseModel):
     api_key: str | None = None
     format: Literal['json', 'xml', 'jsonp'] = 'json'
     field_list: Annotated[str | None, "Comma delimited list of fields"] = None
+    json_callback: Annotated[str | None, "Used for jsonp responses"] = None
 
     @field_validator('format', mode='before')
     @classmethod

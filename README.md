@@ -13,10 +13,9 @@ The models are based on the [CV API documentation](https://comicvine.gamespot.co
 ## Features
 :thumbsup: **Current:**
 - Backends offering a sqlite backed cache for ComicVine or a static sqlite database source
-- JSON responses only
+- JSON and XML responses
 
 :writing_hand: **Planned:**
-- Support for response types other than JSON
 - A backend to serve data from a JSON file (mostly to support smaller test scenarios)
 - Configurable failure scenarios to force failures from certain API calls
 - Support remapping API URLs in responses to the FakeVine route 
