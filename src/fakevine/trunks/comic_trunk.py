@@ -41,154 +41,154 @@ class ComicTrunk(ABC):
     """
 
     @abstractmethod
-    def search(self, params: SearchParams) -> SearchResponse:
+    async def search(self, params: SearchParams) -> SearchResponse:
         ...
 
     @abstractmethod
-    def volume(self, item_id: int, params: CommonParams) -> SingleResponse[DetailVolume]:
+    async def volume(self, item_id: int, params: CommonParams) -> SingleResponse[DetailVolume]:
         ...
 
     @abstractmethod
-    def volumes(self, params: FilterParams) -> MultiResponse[BaseVolume]:
+    async def volumes(self, params: FilterParams) -> MultiResponse[BaseVolume]:
         ...
 
     @abstractmethod
-    def character(self, item_id: int, params: CommonParams) -> SingleResponse[DetailCharacter]:
+    async def character(self, item_id: int, params: CommonParams) -> SingleResponse[DetailCharacter]:
         ...
 
     @abstractmethod
-    def characters(self, params: FilterParams) -> MultiResponse[BaseCharacter]:
+    async def characters(self, params: FilterParams) -> MultiResponse[BaseCharacter]:
         ...
 
     @abstractmethod
-    def concept(self, item_id: int, params: CommonParams) -> SingleResponse[DetailConcept]:
+    async def concept(self, item_id: int, params: CommonParams) -> SingleResponse[DetailConcept]:
         ...
 
     @abstractmethod
-    def concepts(self, params: FilterParams) -> MultiResponse[BaseConcept]:
+    async def concepts(self, params: FilterParams) -> MultiResponse[BaseConcept]:
         ...
 
     @abstractmethod
-    def episode(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
+    async def episode(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
         ...
 
     @abstractmethod
-    def episodes(self, params: FilterParams) -> MultiResponse[BaseModelExtra]:
+    async def episodes(self, params: FilterParams) -> MultiResponse[BaseModelExtra]:
         ...
 
     @abstractmethod
-    def issue(self, item_id: int, params: CommonParams) -> SingleResponse[DetailIssue]:
+    async def issue(self, item_id: int, params: CommonParams) -> SingleResponse[DetailIssue]:
         ...
 
     @abstractmethod
-    def issues(self, params: FilterParams) -> MultiResponse[BaseIssue]:
+    async def issues(self, params: FilterParams) -> MultiResponse[BaseIssue]:
         ...
 
     @abstractmethod
-    def location(self, item_id: int, params: CommonParams) -> SingleResponse[DetailLocation]:
+    async def location(self, item_id: int, params: CommonParams) -> SingleResponse[DetailLocation]:
         ...
 
     @abstractmethod
-    def locations(self, params: FilterParams) -> MultiResponse[BaseLocation]:
+    async def locations(self, params: FilterParams) -> MultiResponse[BaseLocation]:
         ...
 
     @abstractmethod
-    def movie(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
+    async def movie(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
         ...
 
     @abstractmethod
-    def movies(self, params: FilterParams) -> MultiResponse[BaseModelExtra]:
+    async def movies(self, params: FilterParams) -> MultiResponse[BaseModelExtra]:
         ...
 
     @abstractmethod
-    def object(self, item_id: int, params: CommonParams) -> SingleResponse[DetailObject]:
+    async def object(self, item_id: int, params: CommonParams) -> SingleResponse[DetailObject]:
         ...
 
     @abstractmethod
-    def objects(self, params: FilterParams) -> MultiResponse[BaseObject]:
+    async def objects(self, params: FilterParams) -> MultiResponse[BaseObject]:
         ...
 
     @abstractmethod
-    def origin(self, item_id: int, params: CommonParams) -> SingleResponse[DetailOrigin]:
+    async def origin(self, item_id: int, params: CommonParams) -> SingleResponse[DetailOrigin]:
         ...
 
     @abstractmethod
-    def origins(self, params: FilterParams) -> MultiResponse[BaseOrigin]:
+    async def origins(self, params: FilterParams) -> MultiResponse[BaseOrigin]:
         ...
 
     @abstractmethod
-    def person(self, item_id: int, params: CommonParams) -> SingleResponse[DetailPerson]:
+    async def person(self, item_id: int, params: CommonParams) -> SingleResponse[DetailPerson]:
         ...
 
     @abstractmethod
-    def people(self, params: FilterParams) -> MultiResponse[BasePerson]:
+    async def people(self, params: FilterParams) -> MultiResponse[BasePerson]:
         ...
 
     @abstractmethod
-    def power(self, item_id: int, params: CommonParams) -> SingleResponse[DetailPower]:
+    async def power(self, item_id: int, params: CommonParams) -> SingleResponse[DetailPower]:
         ...
 
     @abstractmethod
-    def powers(self, params: FilterParams) -> MultiResponse[BasePower]:
+    async def powers(self, params: FilterParams) -> MultiResponse[BasePower]:
         ...
 
     @abstractmethod
-    def publisher(self, item_id: int, params: CommonParams) -> SingleResponse[DetailPublisher]:
+    async def publisher(self, item_id: int, params: CommonParams) -> SingleResponse[DetailPublisher]:
         ...
 
     @abstractmethod
-    def publishers(self, params: FilterParams) -> MultiResponse[BasePublisher]:
+    async def publishers(self, params: FilterParams) -> MultiResponse[BasePublisher]:
         ...
 
     @abstractmethod
-    def series(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
+    async def series(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
         ...
 
     @abstractmethod
-    def series_list(self, params: FilterParams) -> MultiResponse[BaseModelExtra]:
+    async def series_list(self, params: FilterParams) -> MultiResponse[BaseModelExtra]:
         ...
 
     @abstractmethod
-    def story_arc(self, item_id: int, params: CommonParams) -> SingleResponse[DetailStoryArc]:
+    async def story_arc(self, item_id: int, params: CommonParams) -> SingleResponse[DetailStoryArc]:
         ...
 
     @abstractmethod
-    def story_arcs(self, params: FilterParams) -> MultiResponse[BaseStoryArc]:
+    async def story_arcs(self, params: FilterParams) -> MultiResponse[BaseStoryArc]:
         ...
 
     @abstractmethod
-    def team(self, item_id: int, params: CommonParams) -> SingleResponse[DetailTeam]:
+    async def team(self, item_id: int, params: CommonParams) -> SingleResponse[DetailTeam]:
         ...
 
     @abstractmethod
-    def teams(self, params: FilterParams) -> MultiResponse[BaseTeam]:
+    async def teams(self, params: FilterParams) -> MultiResponse[BaseTeam]:
         ...
 
     @abstractmethod
-    def video(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
+    async def video(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
         ...
 
     @abstractmethod
-    def videos(self, params: FilterParams) -> MultiResponse[BaseModelExtra]:
+    async def videos(self, params: FilterParams) -> MultiResponse[BaseModelExtra]:
         ...
 
     @abstractmethod
-    def video_type(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
+    async def video_type(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
         ...
 
     @abstractmethod
-    def video_types(self, params: FilterParams) -> MultiResponse[BaseModelExtra]:
+    async def video_types(self, params: FilterParams) -> MultiResponse[BaseModelExtra]:
         ...
 
     @abstractmethod
-    def video_category(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
+    async def video_category(self, item_id: int, params: CommonParams) -> SingleResponse[BaseModelExtra]:
         ...
 
     @abstractmethod
-    def video_categories(self, params: FilterParams) -> MultiResponse[BaseModelExtra]:
+    async def video_categories(self, params: FilterParams) -> MultiResponse[BaseModelExtra]:
         ...
 
-    def types(self, params: CommonParams) -> MultiResponse[BaseTypes]:  # noqa: ARG002
+    async def types(self, params: CommonParams) -> MultiResponse[BaseTypes]:  # noqa: ARG002
         return MultiResponse[BaseTypes].model_validate_json(
             json_data= '''
             {

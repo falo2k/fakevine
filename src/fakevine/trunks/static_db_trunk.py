@@ -66,7 +66,7 @@ class StaticDBTrunk(ComicTrunk):
         return date.strftime('%b %d, %Y')
 
     def _rows_to_list(self, rows: Sequence[Row], container_class: type[api.BaseModel]) -> list:
-        def inner_func(row: Row) -> api.BaseModel:
+        async def inner_func(row: Row) -> api.BaseModel:
             return container_class(**row._asdict())
 
         return list(map(inner_func, rows))
@@ -287,11 +287,11 @@ class StaticDBTrunk(ComicTrunk):
 
         return {k:v for k,v in response_dict.items() if k in field_list}
 
-    def character(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.DetailCharacter]:
+    async def character(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.DetailCharacter]:
         return self._generate_single_response(int(item_id), params, db.Character, api.DetailCharacter,
                 self._get_character_data)  # ty:ignore[invalid-return-type]
 
-    def characters(self, params: api.FilterParams) -> api.MultiResponse[api.BaseCharacter]:
+    async def characters(self, params: api.FilterParams) -> api.MultiResponse[api.BaseCharacter]:
         return self._generate_multi_response(params, db.Character, api.BaseCharacter,
                 self._get_character_data)  # ty:ignore[invalid-return-type]
 
@@ -342,11 +342,11 @@ class StaticDBTrunk(ComicTrunk):
 
         return {k:v for k,v in response_dict.items() if k in field_list}
 
-    def concept(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.DetailConcept]:
+    async def concept(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.DetailConcept]:
         return self._generate_single_response(int(item_id), params, db.Concept, api.DetailConcept,
                 self._get_concept_data)  # ty:ignore[invalid-return-type]
 
-    def concepts(self, params: api.FilterParams) -> api.MultiResponse[api.BaseConcept]:
+    async def concepts(self, params: api.FilterParams) -> api.MultiResponse[api.BaseConcept]:
         return self._generate_multi_response(params, db.Concept, api.BaseConcept,
                 self._get_concept_data)  # ty:ignore[invalid-return-type]
 
@@ -443,11 +443,11 @@ class StaticDBTrunk(ComicTrunk):
 
         return {k:v for k,v in response_dict.items() if k in field_list}
 
-    def issue(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.DetailIssue]:
+    async def issue(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.DetailIssue]:
         return self._generate_single_response(int(item_id), params, db.Issue, api.DetailIssue,
                 self._get_issue_data)  # ty:ignore[invalid-return-type]
 
-    def issues(self, params: api.FilterParams) -> api.MultiResponse[api.BaseIssue]:
+    async def issues(self, params: api.FilterParams) -> api.MultiResponse[api.BaseIssue]:
         return self._generate_multi_response(params, db.Issue, api.BaseIssue,
                 self._get_issue_data)  # ty:ignore[invalid-return-type]
 
@@ -507,11 +507,11 @@ class StaticDBTrunk(ComicTrunk):
 
         return {k:v for k,v in response_dict.items() if k in field_list}
 
-    def location(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.DetailLocation]:
+    async def location(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.DetailLocation]:
         return self._generate_single_response(int(item_id), params, db.Location, api.DetailLocation,
                 self._get_location_data)  # ty:ignore[invalid-return-type]
 
-    def locations(self, params: api.FilterParams) -> api.MultiResponse[api.BaseLocation]:
+    async def locations(self, params: api.FilterParams) -> api.MultiResponse[api.BaseLocation]:
         return self._generate_multi_response(params, db.Location, api.BaseLocation,
                 self._get_location_data)  # ty:ignore[invalid-return-type]
 
@@ -571,11 +571,11 @@ class StaticDBTrunk(ComicTrunk):
 
         return {k:v for k,v in response_dict.items() if k in field_list}
 
-    def object(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.DetailObject]:
+    async def object(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.DetailObject]:
         return self._generate_single_response(int(item_id), params, db.Object, api.DetailObject,
                 self._get_object_data)  # ty:ignore[invalid-return-type]
 
-    def objects(self, params: api.FilterParams) -> api.MultiResponse[api.BaseObject]:
+    async def objects(self, params: api.FilterParams) -> api.MultiResponse[api.BaseObject]:
         return self._generate_multi_response(params, db.Object, api.BaseObject,
                 self._get_object_data)  # ty:ignore[invalid-return-type]
 
@@ -612,11 +612,11 @@ class StaticDBTrunk(ComicTrunk):
 
         return {k:v for k,v in response_dict.items() if k in field_list}
 
-    def origin(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.DetailOrigin]:
+    async def origin(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.DetailOrigin]:
         return self._generate_single_response(int(item_id), params, db.Origin, api.DetailOrigin,
                 self._get_origin_data)  # ty:ignore[invalid-return-type]
 
-    def origins(self, params: api.FilterParams) -> api.MultiResponse[api.BaseOrigin]:
+    async def origins(self, params: api.FilterParams) -> api.MultiResponse[api.BaseOrigin]:
         return self._generate_multi_response(params, db.Origin, api.BaseOrigin,
                 self._get_origin_data)  # ty:ignore[invalid-return-type]
 
@@ -668,11 +668,11 @@ class StaticDBTrunk(ComicTrunk):
 
         return {k:v for k,v in response_dict.items() if k in field_list}
 
-    def person(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.DetailPerson]:
+    async def person(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.DetailPerson]:
         return self._generate_single_response(int(item_id), params, db.Person, api.DetailPerson,
                 self._get_person_data)  # ty:ignore[invalid-return-type]
 
-    def people(self, params: api.FilterParams) -> api.MultiResponse[api.BasePerson]:
+    async def people(self, params: api.FilterParams) -> api.MultiResponse[api.BasePerson]:
         return self._generate_multi_response(params, db.Person, api.BasePerson,
                 self._get_person_data)  # ty:ignore[invalid-return-type]
 
@@ -696,11 +696,11 @@ class StaticDBTrunk(ComicTrunk):
 
         return {k:v for k,v in response_dict.items() if k in field_list}
 
-    def power(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.DetailPower]:
+    async def power(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.DetailPower]:
         return self._generate_single_response(int(item_id), params, db.Power, api.DetailPower,
                 self._get_power_data)  # ty:ignore[invalid-return-type]
 
-    def powers(self, params: api.FilterParams) -> api.MultiResponse[api.BasePower]:
+    async def powers(self, params: api.FilterParams) -> api.MultiResponse[api.BasePower]:
         return self._generate_multi_response(params, db.Power, api.BasePower,
                 self._get_power_data)  # ty:ignore[invalid-return-type]
 
@@ -741,15 +741,15 @@ class StaticDBTrunk(ComicTrunk):
 
         return {k:v for k,v in response_dict.items() if k in field_list}
 
-    def publisher(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.DetailPublisher]:
+    async def publisher(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.DetailPublisher]:
         return self._generate_single_response(int(item_id), params, db.Publisher, api.DetailPublisher,
                 self._get_publisher_data)  # ty:ignore[invalid-return-type]
 
-    def publishers(self, params: api.FilterParams) -> api.MultiResponse[api.BasePublisher]:
+    async def publishers(self, params: api.FilterParams) -> api.MultiResponse[api.BasePublisher]:
         return self._generate_multi_response(params, db.Publisher, api.BasePublisher,
                 self._get_publisher_data)  # ty:ignore[invalid-return-type]
 
-    def search(self, params: api.SearchParams) -> api.SearchResponse:
+    async def search(self, params: api.SearchParams) -> api.SearchResponse:
         if params.query is None or params.query == "":
             raise ObjectNotFoundError
 
@@ -793,11 +793,11 @@ class StaticDBTrunk(ComicTrunk):
 
         return {k:v for k,v in response_dict.items() if k in field_list}
 
-    def story_arc(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.DetailStoryArc]:
+    async def story_arc(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.DetailStoryArc]:
         return self._generate_single_response(int(item_id), params, db.StoryArc, api.DetailStoryArc,
                 self._get_story_arc_data)  # ty:ignore[invalid-return-type]
 
-    def story_arcs(self, params: api.FilterParams) -> api.MultiResponse[api.BaseStoryArc]:
+    async def story_arcs(self, params: api.FilterParams) -> api.MultiResponse[api.BaseStoryArc]:
         return self._generate_multi_response(params, db.StoryArc, api.BaseStoryArc,
                 self._get_story_arc_data)  # ty:ignore[invalid-return-type]
 
@@ -888,11 +888,11 @@ class StaticDBTrunk(ComicTrunk):
 
         return {k:v for k,v in response_dict.items() if k in field_list}
 
-    def team(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.DetailTeam]:
+    async def team(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.DetailTeam]:
         return self._generate_single_response(int(item_id), params, db.Team, api.DetailTeam,
                 self._get_team_data)  # ty:ignore[invalid-return-type]
 
-    def teams(self, params: api.FilterParams) -> api.MultiResponse[api.BaseTeam]:
+    async def teams(self, params: api.FilterParams) -> api.MultiResponse[api.BaseTeam]:
         return self._generate_multi_response(params, db.Team, api.BaseTeam,
                 self._get_team_data)  # ty:ignore[invalid-return-type]
 
@@ -954,47 +954,47 @@ class StaticDBTrunk(ComicTrunk):
 
         return {k:v for k,v in response_dict.items() if k in field_list}
 
-    def volume(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.DetailVolume]:
+    async def volume(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.DetailVolume]:
         return self._generate_single_response(int(item_id), params, db.Volume, api.DetailVolume,
                 self._get_volume_data)  # ty:ignore[invalid-return-type]
 
-    def volumes(self, params: api.FilterParams) -> api.MultiResponse[api.BaseVolume]:
+    async def volumes(self, params: api.FilterParams) -> api.MultiResponse[api.BaseVolume]:
         return self._generate_multi_response(params, db.Volume, api.BaseVolume,
                 self._get_volume_data)  # ty:ignore[invalid-return-type]
 
     ## The trunk only supports comic data
-    def episode(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.BaseModelExtra]:
+    async def episode(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.BaseModelExtra]:
         raise NotImplementedError("Route not implemented by trunk")
 
-    def episodes(self, params: api.FilterParams) -> api.MultiResponse[api.BaseModelExtra]:
+    async def episodes(self, params: api.FilterParams) -> api.MultiResponse[api.BaseModelExtra]:
         raise NotImplementedError("Route not implemented by trunk")
 
-    def movie(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.BaseModelExtra]:
+    async def movie(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.BaseModelExtra]:
         raise NotImplementedError("Route not implemented by trunk")
 
-    def movies(self, params: api.FilterParams) -> api.MultiResponse[api.BaseModelExtra]:
+    async def movies(self, params: api.FilterParams) -> api.MultiResponse[api.BaseModelExtra]:
         raise NotImplementedError("Route not implemented by trunk")
 
-    def series(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.BaseModelExtra]:
+    async def series(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.BaseModelExtra]:
         raise NotImplementedError("Route not implemented by trunk")
 
-    def series_list(self, params: api.FilterParams) -> api.MultiResponse[api.BaseModelExtra]:
+    async def series_list(self, params: api.FilterParams) -> api.MultiResponse[api.BaseModelExtra]:
         raise NotImplementedError("Route not implemented by trunk")
 
-    def video(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.BaseModelExtra]:
+    async def video(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.BaseModelExtra]:
         raise NotImplementedError("Route not implemented by trunk")
 
-    def videos(self, params: api.FilterParams) -> api.MultiResponse[api.BaseModelExtra]:
+    async def videos(self, params: api.FilterParams) -> api.MultiResponse[api.BaseModelExtra]:
         raise NotImplementedError("Route not implemented by trunk")
 
-    def video_type(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.BaseModelExtra]:
+    async def video_type(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.BaseModelExtra]:
         raise NotImplementedError("Route not implemented by trunk")
 
-    def video_types(self, params: api.FilterParams) -> api.MultiResponse[api.BaseModelExtra]:
+    async def video_types(self, params: api.FilterParams) -> api.MultiResponse[api.BaseModelExtra]:
         raise NotImplementedError("Route not implemented by trunk")
 
-    def video_category(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.BaseModelExtra]:
+    async def video_category(self, item_id: int, params: api.CommonParams) -> api.SingleResponse[api.BaseModelExtra]:
         raise NotImplementedError("Route not implemented by trunk")
 
-    def video_categories(self, params: api.FilterParams) -> api.MultiResponse[api.BaseModelExtra]:
+    async def video_categories(self, params: api.FilterParams) -> api.MultiResponse[api.BaseModelExtra]:
         raise NotImplementedError("Route not implemented by trunk")
