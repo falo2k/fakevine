@@ -434,12 +434,37 @@ class CVApp:
         return await self._fetch_response(params=params, trunk_method=lambda *_, **__: (_ for _ in ()).throw(URLFormatError), item_id=None)
 
 xml_resource_naming: dict[str, str] = {
-    'characters' : 'character',
+    'character_credits' : 'character',
+    'character_died_in' : 'character',
     'character_enemies' : 'character',
     'character_friends' : 'character',
-    'people' : 'person',
-    'objects' : 'object',
+    'characters' : 'character',
+    'concept_credits' : 'concept',
+    'created_characters' : 'character',
+    'creators' : 'creator',
+    'disbanded_in_issues' : 'issue',
+    'episodes' : 'episode',
     'issue_credits' : 'issue',
+    'issues_died_in' : 'issue',
+    'isssues_disbanded_in' : 'issue',
+    'isssue_credits' : 'issue',
+    'location_credits' : 'location',
+    'locations' : 'location',
+    'movies' : 'movie',
+    'object_credits' : 'object',
+    'objects' : 'object',
+    'people' : 'person',
+    'person_credits' : 'person',
+    'powers' : 'power',
+    'story_arc_credits' : 'story_arc',
+    'story_arcs' : 'story_arc',
+    'team_credits' : 'team',
+    'team_disbanded_in' : 'team',
+    'team_enemies' : 'team',
+    'team_friends' : 'team',
+    'teams' : 'team',
+    'volume_credits' : 'volume',
+    'volumes' : 'volume',
 }
 
 def cvresponse_to_xml(response: CVResponse) -> str:
@@ -521,6 +546,9 @@ def linkedentity_to_xml(entity: cvapimodels.BasicLinkedEntity, parent: _Element)
 
     if isinstance(entity, cvapimodels.CountedSiteLinkedEntity):
         etree.SubElement(parent, 'count').text = None if entity.count is None else str(entity.count)
+
+    if isinstance(entity, cvapimodels.PersonCredits):
+        etree.SubElement(parent, 'role').text = etree.CDATA(entity.role)
 
 def jsonp_encoder(model: CVResponse, callback: str) -> str:
     """Nobody should really be using this but whatever."""
