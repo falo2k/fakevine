@@ -1,3 +1,4 @@
+import json
 from typing import TYPE_CHECKING, Annotated, Literal
 
 from fastapi import FastAPI, Query, Request, status
@@ -164,11 +165,10 @@ class CVApp:
         """
         if self.api_key is not None and params.api_key is None:
             status_code, data = self._exception_responses[AuthenticationError]
-
-        # TODO@falo2k:  Process conversion of responses into other formats
-        # https://github.com/falo2k/fakevine/issues/2
-        elif params.format == "jsonp":
-            status_code, data = self._exception_responses[UnsupportedResponseError]
+        elif params.format == "jsonp" and (params.json_callback is None or params.json_callback == ""):
+            status_code = status.HTTP_200_OK
+            data = CVResponse(limit=0, status_code=103)
+            params.format = 'json'
         else:
             try:
                 data = trunk_method(params=params) if item_id is None else trunk_method(item_id=item_id, params=params)
@@ -191,10 +191,13 @@ class CVApp:
 
         if params.format == "json":
             return JSONResponse(content=jsonable_encoder(data), status_code=status_code)
+        
+        if params.format == 'jsonp':
+            return Response(content=jsonp_encoder(data, params.json_callback),  # ty:ignore[invalid-argument-type]
+                status_code=status_code,
+                media_type=r"text/javascript; charset=UTF-8")
 
-        # Must be XML at this point as format should have been validated by the model to json/jsonp/xml
-
-        return Response(content=cvresponse_to_xml(data), status_code=status_code, media_type="application/xml")
+        return Response(content=cvresponse_to_xml(data), status_code=status_code, media_type=r"application/xml")
 
     async def _get_volumes(self, params: Annotated[FilterParams, Query()]) -> Response:
         params.sort = validate_sort_order(params.sort, cvapimodels.BaseVolume)
@@ -517,3 +520,7 @@ def linkedentity_to_xml(entity: cvapimodels.BasicLinkedEntity, parent: _Element)
 
     if isinstance(entity, cvapimodels.CountedSiteLinkedEntity):
         etree.SubElement(parent, 'count').text = None if entity.count is None else str(entity.count)
+
+def jsonp_encoder(model: CVResponse, callback: str) -> str:
+    """Nobody should really be using this but whatever."""
+    return f'{callback}({json.dumps(jsonable_encoder(model))})'
