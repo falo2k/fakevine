@@ -25,6 +25,7 @@ The models are based on the [CV API documentation](https://comicvine.gamespot.co
 
 :thumbsdown: **Unplanned:**
 - Request caching.  You can add a service like Caddy's [cache-handler](https://github.com/caddyserver/cache-handler) in front.
+- Rate limiting.  It might come later, but any implementation to achieve any control at the scale it's necessary would likely need external services anyway, so it makes more sense to suggest utilising a Caddy rate limiting plugin for this as well.
 
 ## Running The App
 Launch the app using [uv](https://docs.astral.sh/uv/) with `uv run fakevine`.

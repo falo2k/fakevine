@@ -7,8 +7,8 @@ LISTEN_INTERFACE="0.0.0.0"
 LISTEN_PORT=8463
 
 ### Authentication Settings
-## Setting an API_KEY is optional for a simple check.  If one is not set, then any api key will be accepted
-#API_KEY=""
+## Setting API_KEYS is optional for a simple check.  If none are addded, then any api key will be accepted.
+API_KEYS=[]
 
 ### App Features
 ## Optionally enable writing to a log file + rotation/retention settings (see loguru documentation)

@@ -48,7 +48,7 @@ class CVApp:
         Responses to match CV's HTTP status codes and content.
     app : FastAPI
         FastAPI app instance.
-    api_key : str | None
+    api_keys : list[str]
         Optional API key for basic authentication.
     trunk : ComicTrunk
         ComicTrunk instance for data operations.
@@ -59,17 +59,18 @@ class CVApp:
     api_key: str | None = None
     trunk: ComicTrunk
 
-    def __init__(self, trunk: ComicTrunk, api_key: str | None = None) -> None:
+    def __init__(self, trunk: ComicTrunk, api_keys: list[str]) -> None:
         """Initialize the CVRouter with a ComicTrunk and optional API key.
 
         Args:
             trunk (ComicTrunk): The comic trunk instance for data operations.
-            api_key (str | None, optional): The API key for authentication. Defaults to None.
+            api_keys (list[str]): The API keys for authentication.  If none provided then will not perform checks.
 
         """
-        self.api_key = api_key
+        self.api_keys = api_keys
         self.trunk = trunk
-        self.app = FastAPI(exception_handlers={RequestValidationError : self._validation_exception_handler})
+        self.app = FastAPI(exception_handlers={
+            RequestValidationError : self._validation_exception_handler})
         self._attach_routes()
 
         self._exception_responses:dict[type[Exception], tuple[int, CVResponse | str]] = {
@@ -83,7 +84,14 @@ class CVApp:
             GatewayError: (status.HTTP_502_BAD_GATEWAY, "<html><title>502 Bad Gateway</title><body>502 Bad Gateway</body></html>"),
         }
 
-    async def _validation_exception_handler(self, request: Request, exc: RequestValidationError) -> Response:  # noqa: ARG002
+    async def _validation_exception_handler(self, request: Request, exc: RequestValidationError) -> Response:
+        if request.query_params.get('api_key') is None or request.query_params.get('api_key') == '':
+            status_code, data = self._exception_responses[AuthenticationError]
+            if request.query_params.get('format', 'json') in ['json', 'jsonp']:
+                return JSONResponse(content=jsonable_encoder(data), status_code=status_code)
+
+            return Response(content=cvresponse_to_xml(data), status_code=status_code, media_type=r"application/xml")  # ty:ignore[invalid-argument-type]
+
         message = """
             <html>
                 <title>Random CV Webpage</title>
@@ -163,7 +171,7 @@ class CVApp:
             Response: The appropriate CV API compatible response.
 
         """
-        if self.api_key is not None and params.api_key is None:
+        if self.api_keys != [] and params.api_key not in self.api_keys:
             status_code, data = self._exception_responses[AuthenticationError]
         elif params.format == "jsonp" and (params.json_callback is None or params.json_callback == ""):
             status_code = status.HTTP_200_OK
@@ -240,7 +248,7 @@ class CVApp:
             params=CommonParams.model_validate({'format':format, 'api_key': api_key}),
             trunk_method= self.trunk.types)
 
-    async def _get_character(self, request: Request, character_id: int, params: Annotated[CommonParams, Query()]) -> Response:
+    async def _get_character(self, character_id: int, params: Annotated[CommonParams, Query()]) -> Response:
         params.field_list = validate_field_list(params.field_list, cvapimodels.DetailCharacter)
 
         return await self._fetch_response(params=params, trunk_method=self.trunk.character, item_id=character_id)

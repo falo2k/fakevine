@@ -8,7 +8,7 @@ settings = Dynaconf(
         # Ensure some parameter meets a condition
         Validator("LISTEN_INTERFACE", cast=str),
         Validator("LISTEN_PORT", cast=int),
-        Validator("API_KEY", cast=str, default=None),
+        Validator("API_KEYS", default=[]),
         Validator("LOG_FILE_ENABLE", cast=bool),
         Validator("LOG_ROTATION"),
         Validator("LOG_RETENTION"),

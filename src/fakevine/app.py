@@ -46,14 +46,15 @@ def main() -> None:
 
     match comic_trunk:
         case "cache":
-            cv_app = CVApp(trunk=SimpleCacheTrunk(
-                cv_api_key=settings.get("CACHE_CV_API_KEY"),
-                cache_filename=settings.get("CACHE_DB_PATH"),
-                cache_expiry_minutes=settings.get("CACHE_EXPIRY_MINUTES"),
-                cv_api_url=settings.get("CACHE_CV_API_URL"),
-                user_agent=settings.get("CACHE_CV_UA"),
-                overrides=settings.get('CACHE_EXPIRY_OVERRIDE')),
-                api_key=settings.get("API_KEY"))
+            cv_app = CVApp(
+                trunk=SimpleCacheTrunk(
+                    cv_api_key=settings.get("CACHE_CV_API_KEY"),
+                    cache_filename=settings.get("CACHE_DB_PATH"),
+                    cache_expiry_minutes=settings.get("CACHE_EXPIRY_MINUTES"),
+                    cv_api_url=settings.get("CACHE_CV_API_URL"),
+                    user_agent=settings.get("CACHE_CV_UA"),
+                    overrides=settings.get('CACHE_EXPIRY_OVERRIDE')),
+                api_keys=settings.get("API_KEYS"))
 
         case "staticdb":
             db_path = Path(settings.get("STATICDB_PATH"))
@@ -62,9 +63,10 @@ def main() -> None:
                 logger.error(f'{db_path} does not exist / is not a file')
                 sys.exit(1)
 
-            cv_app = CVApp(trunk=StaticDBTrunk(
-                database_path=Path(db_path)),
-                api_key=settings.get("API_KEY"))
+            cv_app = CVApp(
+                trunk=StaticDBTrunk(
+                    database_path=Path(db_path)),
+                api_keys=settings.get("API_KEYS"))
 
         case "json":
             logger.error("JSON Trunk not yet implemented")

@@ -1,12 +1,13 @@
 # ruff: noqa: D101, FIX002
 import datetime
 from enum import Enum
-from typing import TYPE_CHECKING, Annotated, Any, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    StringConstraints,
     computed_field,
     create_model,
     field_validator,
@@ -215,7 +216,7 @@ def optional_model(model_cls: type[BaseModelExtra]) -> type[BaseModelExtra]:
 
 ## Request Models
 class CommonParams(BaseModel):
-    api_key: str | None = None
+    api_key: Annotated[str, StringConstraints(min_length=1)]
     format: Literal['json', 'xml', 'jsonp'] = 'json'
     field_list: Annotated[str | None, "Comma delimited list of fields"] = None
     json_callback: Annotated[str | None, "Used for jsonp responses"] = None
