@@ -33,7 +33,15 @@ Launch the app using [uv](https://docs.astral.sh/uv/) with `uv run fakevine`.
 Configuration is loaded in the order `defaults.toml` -> `settings.toml` -> ENV VARs (or a dotEnv file).  See `defaults.toml` for details of available options.  At minimum you should define a CV API key for the cache to use.
 
 ## Running in Docker
-TBD
+
+See the example docker-compose files for how to deploy fakevine.  Settings can be set as environment variables in docker, or added as a file in `/data`.  At minimum you will want to set a `CACHE_CV_API_KEY` for the cache setup.
+
+**Available image tags:**
+- `latest` - Latest stable release
+- `v{version}` - Specific release version (e.g., `v0.1.0`)
+- `nightly` - Latest nightly build
+- `nightly-{sha}` - Specific nightly build with commit SHA
+- Any of the above with `-dev` suffix for development images with debugpy support (on port 5678).
 
 ## Using in your own projects
 While I don't currently plan to distribute this repo through pip, you can add the package using uv directly from GitHub using one of the commands below.

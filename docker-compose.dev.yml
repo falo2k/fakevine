@@ -1,0 +1,15 @@
+services:
+  fakevine-dev:
+    image: ghcr.io/falo2k/fakevine:latest-dev
+    ports:
+      - "8463:8463"
+      - "5678:5678"
+    volumes:
+      - fakevine-dev-data:/data
+    environment:
+      - FAKEVINE_LOG_FILE_ENABLE=true
+      - FAKEVINE_CACHE_CV_API_KEY=replaceme
+    restart: unless-stopped
+
+volumes:
+  fakevine-dev-data:
