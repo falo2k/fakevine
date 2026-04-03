@@ -140,7 +140,7 @@ class StaticDBTrunk(ComicTrunk):
 
             filter_list = [] if params.filter is None else params.filter.split(',')
 
-            item_count_query: Query = func.count(db_table.id)
+            item_count_query: Query = select(func.count(db_table.id))
             item_query: Query = select(db_table) \
                 .order_by(text(sort_string)).offset(params.offset).limit(params.limit)
 
@@ -152,6 +152,7 @@ class StaticDBTrunk(ComicTrunk):
                 return_class = api.filtered_model(api_model, field_list)
 
             item_query = self._build_filtered_query(item_query, filter_list, return_class.model_fields)
+            item_count_query = self._build_filtered_query(item_count_query, filter_list, return_class.model_fields)
 
             record_count: int = (await session.execute(item_count_query)).scalar()
             item_rows: Sequence[Row] = (await session.execute(item_query)).all()
