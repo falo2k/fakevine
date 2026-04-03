@@ -1,4 +1,3 @@
-import asyncio
 import json
 from typing import TYPE_CHECKING, Annotated, Literal
 
@@ -180,7 +179,7 @@ class CVApp:
                 status_code, data= self._exception_responses[type(ex)]
             except ValidationError as ex:
                 for ex_error in ex.errors():
-                    error_loc = '->'.join(map(str,list(ex_error["loc"])))  # ty:ignore[no-matching-overload]
+                    error_loc = '->'.join(map(str,list(ex_error["loc"])))
                     input_summary = f"{str(ex_error["input"])[:100]}{' ...' if len(str(ex_error["input"])) > 100 else ''}"  # noqa: PLR2004
                     error_msg = f"{ex_error["msg"]}: {error_loc}: {input_summary}"
                     logger.error(error_msg)
@@ -241,7 +240,7 @@ class CVApp:
             params=CommonParams.model_validate({'format':format, 'api_key': api_key}),
             trunk_method= self.trunk.types)
 
-    async def _get_character(self, character_id: int, params: Annotated[CommonParams, Query()]) -> Response:
+    async def _get_character(self, request: Request, character_id: int, params: Annotated[CommonParams, Query()]) -> Response:
         params.field_list = validate_field_list(params.field_list, cvapimodels.DetailCharacter)
 
         return await self._fetch_response(params=params, trunk_method=self.trunk.character, item_id=character_id)
@@ -428,7 +427,7 @@ class CVApp:
         return await self._fetch_response(params=params, trunk_method=self.trunk.video_categories)
 
     async def _get_object_not_found(self, params: Annotated[CommonParams, Query()]) -> Response:
-        return await self._fetch_response(params=params, trunk_method=lambda *_, **__: (_ for _ in ()).throw(ObjectNotFoundError), item_id=None)
+        return await self._fetch_response(params=params, trunk_method=lambda *_, **__: (_ for _ in ()).throw(ObjectNotFoundError), item_id=None)  # noqa: E501
 
     async def _get_url_format_error(self, params: Annotated[CommonParams, Query()]) -> Response:
         return await self._fetch_response(params=params, trunk_method=lambda *_, **__: (_ for _ in ()).throw(URLFormatError), item_id=None)
@@ -496,7 +495,7 @@ def cvresponse_to_xml(response: CVResponse) -> str:
 
     return etree.tostring(root, encoding='utf8').decode()
 
-def entity_to_xml(entity: cvapimodels.BaseModelExtra, parent: _Element) -> None:  # noqa: C901, PLR0912
+def entity_to_xml(entity: cvapimodels.BaseModelExtra, parent: _Element) -> None:  # noqa: C901
     """Encode a response entity as XML."""
     for field_name, field_info in type(entity).model_fields.items():
         if getattr(entity, field_name) is None:

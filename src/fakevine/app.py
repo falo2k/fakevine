@@ -31,12 +31,22 @@ def main() -> None:
             except (ValueError, TypeError):
                 cache_expiry = 24*60
 
+            override_list: list[list] = [entry.split(':') for entry in os.environ.get("CACHE_EXPIRY_OVERRIDE", "").split(',')]
+            for entry in override_list:
+                if len(entry) == 1:
+                    entry.append(-1)
+                if entry[1] == "":
+                    entry[1] = -1
+                else:
+                    entry[1] = int(entry[1])
+
             cv_app = CVApp(trunk=SimpleCacheTrunk(
                 cv_api_key=os.environ["CACHE_CV_API_KEY"],
                 cache_filename=os.environ.get("CACHE_DB_PATH"),
                 cache_expiry_minutes=cache_expiry,
                 cv_api_url=os.environ.get("CACHE_CV_API_URL"),
-                user_agent=os.environ.get("CACHE_CV_UA", "fauxvigne")),
+                user_agent=os.environ.get("CACHE_CV_UA", "fauxvigne"),
+                overrides=override_list),
                 api_key=os.environ.get("API_KEY"))
 
         case "staticdb":
