@@ -1,0 +1,39 @@
+# Development Dockerfile for fakevine using multi-stage build
+# Stage 1: Builder - Install dependencies using uv
+FROM python:3.14-alpine AS builder
+
+WORKDIR /app
+
+# Install uv
+RUN apk add --no-cache gcc musl-dev && \
+    pip install uv && \
+    rm -rf /var/cache/apk/*
+
+# Copy project files
+COPY . .
+
+# Create virtual environment and install dependencies
+RUN uv sync --frozen
+
+# Stage 2: Runtime - Minimal image with only the virtual environment
+FROM python:3.14-alpine
+
+WORKDIR /app
+
+# Copy virtual environment from builder
+COPY --from=builder /app/.venv /app/.venv
+COPY --from=builder /app /app
+
+# Create data directory for logs, config, and databases
+RUN mkdir -p /data
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV ROOT_PATH_FOR_DYNACONF=/data/
+ENV PATH=/app/.venv/bin:$PATH
+
+# Expose the application port and debugpy port
+EXPOSE 8463 5678
+
+# Set the entrypoint to run with debugpy
+ENTRYPOINT ["python", "-Xfrozen_modules=off", "-m", "debugpy", "--listen", "0.0.0.0:5678", "src/fakevine/__init__.py"]

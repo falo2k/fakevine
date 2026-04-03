@@ -1,0 +1,44 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Project config / generated files
+.env
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+.vscode
+*.db
+*.log
+.secrets.*
+settings.toml
+
+# Development and CI/CD
+.git
+.gitignore
+.github
+.pytest_cache
+.ruff_cache
+.coverage
+.mypy_cache
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker files
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Documentation and miscellaneous
+renovate.json
+AGENTS.md
+failures.example.json

@@ -1,6 +1,5 @@
 # ruff: noqa: F403, F405, D102
 from aiohttp_client_cache import CachedSession, SQLiteBackend
-from sqlalchemy import over
 
 from fakevine.models.cvapimodels import *
 from fakevine.trunks.comic_trunk import (

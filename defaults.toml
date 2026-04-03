@@ -1,21 +1,21 @@
 #### Configuration uses TOML format (https://toml.io/en/)
-#### Env var equivalents should be prefixed with 
-#### e.g. LISTEN_PORT=8463
+#### Env var equivalents should be prefixed with FAKEVINE_
+#### e.g. FAKEVINE_LISTEN_PORT=8463
 
 ### Hosting Settings
 LISTEN_INTERFACE="0.0.0.0"
 LISTEN_PORT=8463
 
-### Authentication Settings
-## Setting API_KEYS is optional for a simple check.  If none are addded, then any api key will be accepted.
+### App Features
+## Authentication Settings
+## If none are addded, then any api key will be accepted.
 API_KEYS=[]
 
-### App Features
 ## Optionally enable writing to a log file + rotation/retention settings (see loguru documentation)
 LOG_FILE_ENABLE=false
 LOG_ROTATION="1 day"
 LOG_RETENTION="1 week"
-## Location of a failures file, used for forcing certain responses when used as a testing tool
+## Location of a failures file, used for forcing certain responses when used as a testing tool (not yet implemented)
 #FAILURE_FILE="failures.json"
 
 
@@ -35,5 +35,4 @@ CACHE_CV_UA="fauxvigne"
 CACHE_EXPIRY_MINUTES=1440
 ## Custom endpoint expiry -1 will cache forever.  Defaults to no overrides.
 #CACHE_EXPIRY_OVERRIDE={search=120,volumes=120,issues=120,episodes=-1}
-#CACHE_EXPIRY_OVERRIDE={search=90,volumes=120,issues=90}
 CACHE_EXPIRY_OVERRIDE={}

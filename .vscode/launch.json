@@ -16,6 +16,21 @@
             "envFile": "",
         },
         {
+            "name": "Debug Attach: Local Container",
+            "type": "debugpy",
+            "request": "attach",
+            "connect" : {
+                "host" : "localhost",
+                "port" : 5678
+            },
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}",
+                    "remoteRoot": "/app/"
+                }
+            ]
+        },
+        {
             "name": "Python Debugger: Utils",
             "type": "debugpy",
             "request": "launch",
