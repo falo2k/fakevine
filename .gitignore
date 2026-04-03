@@ -16,3 +16,6 @@ wheels/
 *.sqlite-wal
 .vscode
 *.db
+*.log
+.secrets.*
+settings.toml

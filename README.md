@@ -27,7 +27,9 @@ The models are based on the [CV API documentation](https://comicvine.gamespot.co
 - Request caching.  You can add a service like Caddy's [cache-handler](https://github.com/caddyserver/cache-handler) in front.
 
 ## Running The App
-Launch the app using [uv](https://docs.astral.sh/uv/) with `uv run fakevine`.  If you have not set any environment variables, you can pass a dotEnv file by running `uv run --env-file .env`.  See `.env.example` for details of available options.  At minimum you should define a CV API key for the cache to use.  The cache defaults to a 1 day expiry.
+Launch the app using [uv](https://docs.astral.sh/uv/) with `uv run fakevine`.
+
+Configuration is loaded in the order `defaults.toml` -> `settings.toml` -> ENV VARs (or a dotEnv file).  See `defaults.toml` for details of available options.  At minimum you should define a CV API key for the cache to use.
 
 ## Running in Docker
 TBD

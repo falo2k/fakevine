@@ -1,11 +1,13 @@
 import logging
-import os
 import sys
 from pathlib import Path
 
 import uvicorn
+from dynaconf import ValidationError
+from dynaconf.vendor.tomllib import TOMLDecodeError
 from loguru import logger
 
+from fakevine.config import settings
 from fakevine.cvapp import CVApp
 from fakevine.trunks.simple_cache_trunk import SimpleCacheTrunk
 from fakevine.trunks.static_db_trunk import StaticDBTrunk
@@ -19,38 +21,42 @@ def main() -> None:
     """
     log_interception()
 
-    comic_trunk = os.environ.get("COMIC_TRUNK", "Cache").lower()
+    # Test basic validation on settings stack
+    try:
+        _ = settings.get('COMIC_TRUNK')
+    except (TOMLDecodeError, ValueError, ValidationError) as ex:
+        message = f"Error Validating Configuration Variable.  {ex}"
+        logger.error(message)
+        sys.exit(1)
+
+    if settings.get("LOG_FILE_ENABLE"):
+        rotation = settings.get("LOG_ROTATION")
+        retention = settings.get("LOG_RETENTION")
+        try:
+            logger.add('fakevine.log', rotation=rotation, retention=retention)
+        except ValueError as ex:
+            message = f"Error setting up file logging.  {ex}"
+            logger.error(message)
+            sys.exit(1)
+
+    comic_trunk = settings.get("COMIC_TRUNK", "Cache").lower()
     if comic_trunk not in ["cache", "staticdb", "json"]:
         logger.warning("COMIC_TRUNK setting not recognised, defaulting to Cache")
         comic_trunk = "cache"
 
     match comic_trunk:
         case "cache":
-            try:
-                cache_expiry = int(os.environ.get("CACHE_EXPIRY_MINUTES"))  # ty:ignore[invalid-argument-type]
-            except (ValueError, TypeError):
-                cache_expiry = 24*60
-
-            override_list: list[list] = [entry.split(':') for entry in os.environ.get("CACHE_EXPIRY_OVERRIDE", "").split(',')]
-            for entry in override_list:
-                if len(entry) == 1:
-                    entry.append(-1)
-                if entry[1] == "":
-                    entry[1] = -1
-                else:
-                    entry[1] = int(entry[1])
-
             cv_app = CVApp(trunk=SimpleCacheTrunk(
-                cv_api_key=os.environ["CACHE_CV_API_KEY"],
-                cache_filename=os.environ.get("CACHE_DB_PATH"),
-                cache_expiry_minutes=cache_expiry,
-                cv_api_url=os.environ.get("CACHE_CV_API_URL"),
-                user_agent=os.environ.get("CACHE_CV_UA", "fauxvigne"),
-                overrides=override_list),
-                api_key=os.environ.get("API_KEY"))
+                cv_api_key=settings.get("CACHE_CV_API_KEY"),
+                cache_filename=settings.get("CACHE_DB_PATH"),
+                cache_expiry_minutes=settings.get("CACHE_EXPIRY_MINUTES"),
+                cv_api_url=settings.get("CACHE_CV_API_URL"),
+                user_agent=settings.get("CACHE_CV_UA"),
+                overrides=settings.get('CACHE_EXPIRY_OVERRIDE')),
+                api_key=settings.get("API_KEY"))
 
         case "staticdb":
-            db_path = Path(os.environ.get("STATICDB_PATH", "fakevine.db"))
+            db_path = Path(settings.get("STATICDB_PATH"))
 
             if not db_path.exists() and not db_path.is_file():
                 logger.error(f'{db_path} does not exist / is not a file')
@@ -58,21 +64,16 @@ def main() -> None:
 
             cv_app = CVApp(trunk=StaticDBTrunk(
                 database_path=Path(db_path)),
-                api_key=os.environ.get("API_KEY"))
+                api_key=settings.get("API_KEY"))
 
         case "json":
             logger.error("JSON Trunk not yet implemented")
             sys.exit(1)
 
-    try:
-        listen_port = int(os.environ.get("LISTEN_PORT"))  # ty:ignore[invalid-argument-type]
-    except (ValueError, TypeError):
-        listen_port = 8463
-
     uvicorn.run(
         cv_app.app,
-        host=os.environ.get("LISTEN_INTERFACE", '0.0.0.0'),  # noqa: S104
-        port=listen_port,
+        host=settings.get("LISTEN_INTERFACE"),
+        port=settings.get("LISTEN_PORT"),
         log_config=None,
         log_level=None,
         )

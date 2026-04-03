@@ -10,6 +10,7 @@ requires-python = ">=3.14"
 dependencies = [
     "aiohttp-client-cache[sqlite]>=0.14.3",
     "aiosqlite>=0.22.1",
+    "dynaconf>=3.2.13",
     "fastapi>=0.134.0",
     "loguru>=0.7.3",
     "lxml>=6.0.2",

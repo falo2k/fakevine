@@ -1,0 +1,39 @@
+#### Configuration uses TOML format (https://toml.io/en/)
+#### Env var equivalents should be prefixed with 
+#### e.g. LISTEN_PORT=8463
+
+### Hosting Settings
+LISTEN_INTERFACE="0.0.0.0"
+LISTEN_PORT=8463
+
+### Authentication Settings
+## Setting an API_KEY is optional for a simple check.  If one is not set, then any api key will be accepted
+#API_KEY=""
+
+### App Features
+## Optionally enable writing to a log file + rotation/retention settings (see loguru documentation)
+LOG_FILE_ENABLE=false
+LOG_ROTATION="1 day"
+LOG_RETENTION="1 week"
+## Location of a failures file, used for forcing certain responses when used as a testing tool
+#FAILURE_FILE="failures.json"
+
+
+## COMIC_TRUNK defines what type of backing data the API will serve.  By default it will use a simple HTTP cache.
+## Values can be Cache, JSON, or StaticDB
+COMIC_TRUNK="Cache"
+
+## Settings for the Static DB Cache
+STATICDB_PATH="fakevine.db"
+
+## Settings for the Simple Cache
+#CACHE_CV_API_KEY=""
+CACHE_CV_API_URL="https://comicvine.gamespot.com/api/"
+CACHE_DB_PATH="cache-trunk.sqlite"
+CACHE_CV_UA="fauxvigne"
+## The expiry time for cache entries in minutes.  Defaults to 1 day
+CACHE_EXPIRY_MINUTES=1440
+## Custom endpoint expiry -1 will cache forever.  Defaults to no overrides.
+#CACHE_EXPIRY_OVERRIDE={search=120,volumes=120,issues=120,episodes=-1}
+#CACHE_EXPIRY_OVERRIDE={search=90,volumes=120,issues=90}
+CACHE_EXPIRY_OVERRIDE={}

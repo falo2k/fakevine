@@ -19,7 +19,7 @@ class SimpleCacheTrunk(ComicTrunk):
     _cache = None
 
     def __init__(self, cv_api_key: str, cache_expiry_minutes : int = 24*60, cache_filename: str | None = None,
-        cv_api_url: str | None = None, user_agent: str = "fauxvigne", overrides: list[list] = []) -> None:
+        cv_api_url: str | None = None, user_agent: str = "fauxvigne", overrides: dict[str, int] | None = None) -> None:
         """Initialize SimpleCacheTrunk with ComicVine API credentials and cache settings.
 
         Args:
@@ -52,11 +52,14 @@ class SimpleCacheTrunk(ComicTrunk):
 
         if cv_api_url is not None:
             if cv_api_url[-1] != '/':
-                self._cv_api_url += '/'
+                self._cv_api_url = cv_api_url + '/'
+            else:
+                self._cv_api_url = cv_api_url
         else:
             self._cv_api_url = "https://comicvine.gamespot.com/api/"
 
-        self._overrides = {f'{endpoint}/*' : expiry*60 if expiry >= 0 else expiry for endpoint, expiry in overrides}
+        self._overrides = {} if overrides is None else \
+            {f'{endpoint}/*' : expiry*60 if expiry >= 0 else expiry for endpoint, expiry in overrides.items()}
 
         self._cache_expiry = cache_expiry_minutes*60
 

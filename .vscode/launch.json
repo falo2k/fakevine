@@ -13,6 +13,7 @@
             "cwd" : "${workspaceFolder}",
             "console": "integratedTerminal",
             "preLaunchTask": "uv_sync",
+            "envFile": "",
         },
         {
             "name": "Python Debugger: Utils",
@@ -22,7 +23,8 @@
             "cwd" : "${workspaceFolder}",
             "console": "integratedTerminal",
             "preLaunchTask": "uv_sync",
-            "args" : ["convert-db","source.db", "output.db", "--overwrite"]
+            "args" : ["convert-db","source.db", "output.db", "--overwrite"],
+            "envFile": ""
         },
     ]
 }

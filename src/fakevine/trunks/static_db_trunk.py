@@ -1,13 +1,10 @@
 # ruff: noqa: EM101, D102
-import logging
-import os
 from typing import TYPE_CHECKING, Any
 
 from loguru import logger
 from sqlalchemy import Engine, Result, Row, Select, Sequence, String, asc, cast, create_engine, func, select
 from sqlalchemy.exc import DatabaseError
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import Query, Session, selectinload
 from sqlalchemy.sql.expression import text
 
 from fakevine.models import cvapimodels as api
@@ -20,6 +17,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from pydantic.fields import FieldInfo
+    from sqlalchemy.orm import Query
     from sqlalchemy.sql.base import ReadOnlyColumnCollection
     from sqlalchemy.sql.elements import KeyedColumnElement
 
@@ -48,11 +46,6 @@ class StaticDBTrunk(ComicTrunk):
         except DatabaseError:
             logger.exception("Input database is not a valid SQL database")
             raise
-
-
-        if os.environ.get("STATICDB_LOG_QUERIES", "False").lower() == "true":
-            logging.basicConfig()
-            logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
 
         # TODO@falo2k: Validate database schema
 
