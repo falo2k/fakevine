@@ -106,7 +106,7 @@ class StaticDBTrunk(ComicTrunk):
     async def _generate_single_response(self, item_id: int, params: api.CommonParams, db_table: type[db.BaseTable],
                             api_model: type[api.BaseModelExtra], mapping_function: Callable) -> api.SingleResponse[api.BaseModelExtra]:
         async with self.session() as session:
-            item_query: Result[db.Character] = await session.execute(select(db_table).where(db_table.id == int(item_id)))
+            item_query: Query = await session.execute(select(db_table).where(db_table.id == int(item_id)))
             item_row: Row = item_query.first()
 
             if item_row is None:
@@ -119,7 +119,7 @@ class StaticDBTrunk(ComicTrunk):
                 field_list = params.field_list.split(',')
                 return_class = api.filtered_model(api_model, field_list)
 
-            item_record: db.Character = item_row[0]
+            item_record = item_row[0]
 
             response_dict =  await mapping_function(item_record, field_list, session)
 
