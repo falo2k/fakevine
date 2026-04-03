@@ -36,9 +36,9 @@ async def test_fetch_response_trunk_returns_response():
     trunk = AsyncMock(spec=ComicTrunk)
     trunk.volumes = AsyncMock(return_value=m.CVResponse())
 
-    app = CVApp(trunk=trunk)
+    app = CVApp(trunk=trunk, api_keys=["testkey"])
 
-    res = await app._fetch_response(params=m.FilterParams(), trunk_method=trunk.volumes)
+    res = await app._fetch_response(params=m.FilterParams(api_key="testkey"), trunk_method=trunk.volumes)
     assert isinstance(res, Response)
 
 @pytest.mark.parametrize(
@@ -55,8 +55,8 @@ async def test_exception_mapping_from_trunk(exc: Exception, expected_status: int
     trunk = AsyncMock(spec=ComicTrunk)
     trunk.volumes = AsyncMock(side_effect=exc)
 
-    app = CVApp(trunk=trunk)
-    resp = await app._fetch_response(params=m.FilterParams(), trunk_method=trunk.volumes)
+    app = CVApp(trunk=trunk, api_keys=["testkey"])
+    resp = await app._fetch_response(params=m.FilterParams(api_key="testkey"), trunk_method=trunk.volumes)
     assert resp.status_code == expected_status
 
 
@@ -65,8 +65,8 @@ async def test_unsupported_response_error_returns_501():
     trunk = AsyncMock(spec=ComicTrunk)
     trunk.volumes = AsyncMock(side_effect=UnsupportedResponseError())
 
-    app = CVApp(trunk=trunk)
-    resp = await app._fetch_response(params=m.FilterParams(), trunk_method=trunk.volumes)
+    app = CVApp(trunk=trunk, api_keys=["testkey"])
+    resp = await app._fetch_response(params=m.FilterParams(api_key="testkey"), trunk_method=trunk.volumes)
     assert resp.status_code == 501
 
 
@@ -112,8 +112,7 @@ def client_and_trunk():
         m.BaseTypes(detail_resource_name= "volume", id=4050, list_resource_name="volumes"),
         ]))
 
-    app = CVApp(trunk=trunk)
-    app.api_key = "secret"
+    app = CVApp(trunk=trunk, api_keys=["secret"])
 
     client = TestClient(app.app)
 
@@ -320,8 +319,8 @@ async def test_object_not_found_error_returns_200_with_status_101():
     trunk = AsyncMock(spec=ComicTrunk)
     trunk.volumes = AsyncMock(side_effect=ObjectNotFoundError)
     
-    app = CVApp(trunk=trunk)
-    resp = await app._fetch_response(params=m.FilterParams(), trunk_method=trunk.volumes)
+    app = CVApp(trunk=trunk, api_keys=["testkey"])
+    resp = await app._fetch_response(params=m.FilterParams(api_key="testkey"), trunk_method=trunk.volumes)
     assert resp.status_code == 200  # Returns 200 per ComicVine API
     data = json.loads(resp.body.decode())
     assert data.get("status_code") == 101
@@ -332,8 +331,8 @@ async def test_not_implemented_error_returns_501():
     trunk = AsyncMock(spec=ComicTrunk)
     trunk.volumes = AsyncMock(side_effect=NotImplementedError)
     
-    app = CVApp(trunk=trunk)
-    resp = await app._fetch_response(params=m.FilterParams(), trunk_method=trunk.volumes)
+    app = CVApp(trunk=trunk, api_keys=["testkey"])
+    resp = await app._fetch_response(params=m.FilterParams(api_key="testkey"), trunk_method=trunk.volumes)
     assert resp.status_code == 501
 
 
