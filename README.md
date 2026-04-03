@@ -12,20 +12,21 @@ The models are based on the [CV API documentation](https://comicvine.gamespot.co
 
 ## Features
 :thumbsup: **Current:**
-- Backends offering a sqlite backed cache for ComicVine or a static sqlite database source
+- Backends offering a sqlite backed cache for ComicVine or a static sqlite database source (except Search on sqlite)
 - JSON and XML responses
+- Docker images to run as services
 
 :writing_hand: **Planned:**
 - A backend to serve data from a JSON file (mostly to support smaller test scenarios)
 - Configurable failure scenarios to force failures from certain API calls
 - Support remapping API URLs in responses to the FakeVine route 
 - Host a static folder for cover caching
-- Docker image
 - Healthcheck for the app and trunks, primarily for Docker to monitor
 
 :thumbsdown: **Unplanned:**
 - Request caching.  You can add a service like Caddy's [cache-handler](https://github.com/caddyserver/cache-handler) in front.
 - Rate limiting.  It might come later, but any implementation to achieve any control at the scale it's necessary would likely need external services anyway, so it makes more sense to suggest utilising a Caddy rate limiting plugin for this as well.
+- More complex authentication.  I'm sure it could do better than simple string checks on a list of api keys, but that'll do for the scope of this while remaining CV compatible.
 
 ## Running The App
 Launch the app using [uv](https://docs.astral.sh/uv/) with `uv run fakevine`.
