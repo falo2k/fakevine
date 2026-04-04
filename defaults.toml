@@ -20,11 +20,14 @@ LOG_RETENTION="1 week"
 
 
 ## COMIC_TRUNK defines what type of backing data the API will serve.  By default it will use a simple HTTP cache.
-## Values can be Cache, JSON, or StaticDB
+## Values can be Cache, JSON, LocalCVDB, or StaticDB
 COMIC_TRUNK="Cache"
 
 ## Settings for the Static DB Cache
 STATICDB_PATH="fakevine.db"
+
+## Settings for the reddit localcvdb
+LOCALCVDB_PATH="localcv.db"
 
 ## Settings for the Simple Cache
 #CACHE_CV_API_KEY=""

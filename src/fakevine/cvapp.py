@@ -18,6 +18,7 @@ from fakevine.models.cvapimodels import (
     SearchParams,
     validate_field_list,
     validate_filter_list,
+    validate_resource_list,
     validate_sort_order,
 )
 from fakevine.trunks.comic_trunk import (
@@ -186,13 +187,15 @@ class CVApp:
                     UnsupportedResponseError, NotImplementedError) as ex:
                 status_code, data= self._exception_responses[type(ex)]
             except ValidationError as ex:
+                full_errors = ""
                 for ex_error in ex.errors():
                     error_loc = '->'.join(map(str,list(ex_error["loc"])))
                     input_summary = f"{str(ex_error["input"])[:100]}{' ...' if len(str(ex_error["input"])) > 100 else ''}"  # noqa: PLR2004
                     error_msg = f"{ex_error["msg"]}: {error_loc}: {input_summary}"
+                    full_errors = f"/n{error_msg}" if full_errors == "" else error_msg
                     logger.error(error_msg)
                 status_code=status.HTTP_422_UNPROCESSABLE_CONTENT
-                data=ex.errors()
+                data=error_msg
 
         if not isinstance(data, CVResponse):
             return HTMLResponse(content=data, status_code=status_code)
@@ -235,6 +238,7 @@ class CVApp:
             model=search_models)
         params.field_list = validate_field_list(params.field_list,
             model=search_models)
+        params.resources = validate_resource_list(params.resources)
 
         if params.field_list not in [None, '']:
             params.field_list = ','.join([*params.field_list.split(','), 'resource_type'])

@@ -14,6 +14,7 @@ settings = Dynaconf(
         Validator("LOG_RETENTION"),
         Validator("FAILURE_FILE", cast=str),
         Validator("COMIC_TRUNK", cast=str),
+        Validator("LOCALCVDB_PATH", cast=str),
         Validator("STATICDB_PATH", cast=str),
         Validator("CACHE_CV_API_KEY", cast=str, default=None),
         Validator("CACHE_CV_API_URL", cast=str),
