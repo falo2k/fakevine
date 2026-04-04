@@ -12,7 +12,7 @@ The models are based on the [CV API documentation](https://comicvine.gamespot.co
 
 ## Features
 :thumbsup: **Current:**
-- Backends offering a sqlite backed cache for ComicVine or a static sqlite database source (except Search on sqlite)
+- Backends offering a SQLite backed cache for ComicVine or static SQLite database sources
 - JSON and XML responses
 - Docker images to run as services
 
@@ -32,6 +32,22 @@ The models are based on the [CV API documentation](https://comicvine.gamespot.co
 Launch the app using [uv](https://docs.astral.sh/uv/) with `uv run fakevine`.
 
 Configuration is loaded in the order `defaults.toml` -> `settings.toml` -> ENV VARs (or a dotEnv file).  See `defaults.toml` for details of available options.  At minimum you should define a CV API key for the cache to use.
+
+## Backends
+### Simple Request Cache (Cache)
+Will cache requests to ComicVine for the defined duration, storing responses in a local SQLite database.  Requires a ComicVine API key to function.  Caching is done on a complete request basis (i.e. the unique combination of all parameters passed to the endpoint).  Some endpoints are better suited to shorter expiries using the `CACHE_EXPIRY_OVERRIDE` setting.  e.g. You may want `/volume` to expire weekly to allow new issue releases to be recognised, `/search` or `/volumes` to never expire as they are primarily used for discovery, but `/issue` could have a longer expiry as a mostly one and done request.
+
+More complex logic could be introduced in the future to drive record expiry settings based on the data returned.
+
+### Static Databases (StaticDB and LocalCVDB)
+Uses a static SQLite database to serve response data.  There are two database schemas supported:
+- LocalCVDB uses the schema from the early 2026 reddit dump.  It does not support all routes, or all fields on those routes, due to the limited content within that schema.
+- StaticDB uses a full schema to cover comic based data, and an instance can be generated using `fakevine-utils` and a database of historic `json` responses.
+
+As a full search engine, and unpicking how CV search **currently** works is out of scope for this projects, the `/search` endpoint uses SQLite FTS5.  It's not the best.
+
+### JSON Database (json)
+Not yet implemented.  Originally the purpose of this project to create a testing tool ...
 
 ## Running in Docker
 
