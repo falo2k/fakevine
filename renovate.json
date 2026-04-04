@@ -2,6 +2,13 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended",
-    "schedule:weekly"
+    "schedule:weekly",
+    "docker:pinDigests",
+    "helpers:pinGitHubActionDigests", 
+    ":configMigration", 
+    ":pinDevDependencies", 
+    "abandonments:recommended",
+    ":maintainLockFilesWeekly",
+    "group:allDigest"
   ]
 }
