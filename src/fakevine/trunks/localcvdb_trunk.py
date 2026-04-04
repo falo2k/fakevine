@@ -364,11 +364,12 @@ class LocalCVDBTrunk(ComicTrunk):
                 def clean_token(token: str) -> str:
                     dialect_string = String().literal_processor(dialect=self.db_engine.dialect)(value=token)
                     if re.search(r"[^a-zA-Z0-9]",dialect_string[1:-1]) is not None:
-                        dialect_string = "'\"" + dialect_string[1:-1] + "\"'"
+                        dialect_string = "'\"" + dialect_string[1:-1].replace('"', '') + "\"'"
                     return dialect_string
 
-                query_clauses = [text(f"volume_fts.name MATCH {clean_token(token)}") for token in params.query.split(' ') if token != '']
-                rowid_query = rowid_query.where(or_(*query_clauses)).order_by(text('rank'))
+                name_query_clauses = [text(f"volume_fts.name MATCH {clean_token(token)}") for token in params.query.split(' ') if token != '']
+                aliases_query_clauses = [text(f"volume_fts.aliases MATCH {clean_token(token)}") for token in params.query.split(' ') if token != '']
+                rowid_query = rowid_query.where(or_(*name_query_clauses, *aliases_query_clauses)).order_by(text('rank'))
 
                 item_count_query: Query = select(func.count(db.Volume.id)).where(db.Volume.id.in_(rowid_query))
                 item_query = select(db.Volume).where(db.Volume.id.in_(rowid_query)) \
