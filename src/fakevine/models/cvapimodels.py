@@ -51,6 +51,18 @@ def validate_field_list(value: str | None, model: type[BaseModelExtra] | list[ty
 
     return None if split is None else ','.join(split)
 
+def validate_resource_list(resource_list: str | None) -> str | None:
+    """Validate resources list in request params using CV's logic."""
+    if resource_list is None or resource_list == "":
+        return None
+
+    valid_resources = ["character", "concept", "origin", "object", "location", "issue", "story_arc",
+            "volume", "publisher", "person", "team", "video"]
+
+    clean_list = [resource for resource in resource_list.split(',') if resource in valid_resources]
+
+    return ','.join(clean_list)
+
 def split_and_validate_filter_list(value: str | None, model: type[BaseModelExtra]) -> list[str] | None:
     """Transform field_list in request params using CV's logic."""
     if value is None or value == "":
@@ -237,7 +249,7 @@ class SearchParams(CommonParams):
     offset: int = Field(0, ge=0)
     sort: Annotated[str | None, "Sort by field and direction (asc/desc) in the format field:asc"] = "id:asc"
     query: str | None = None
-
+    resources: str | None = None
 
 ## Response Models
 class CVResponse(BaseModel):
@@ -555,5 +567,4 @@ class SearchTeam(BaseTeam):
     resource_type: Literal["team"] = "team"
 
 SearchResponse = MultiResponse[SearchCharacter | SearchConcept | SearchIssue | SearchObject | SearchOrigin | \
-        SearchPerson | SearchPublisher | SearchStoryArc | SearchTeam | SearchVolume | BaseEntity]
-
+          SearchPerson | SearchPublisher | SearchStoryArc | SearchTeam | SearchVolume | BaseEntity]

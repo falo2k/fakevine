@@ -9,6 +9,7 @@ from loguru import logger
 
 from fakevine.config import settings
 from fakevine.cvapp import CVApp
+from fakevine.trunks.localcvdb_trunk import LocalCVDBTrunk
 from fakevine.trunks.simple_cache_trunk import SimpleCacheTrunk
 from fakevine.trunks.static_db_trunk import StaticDBTrunk
 
@@ -40,7 +41,7 @@ def main() -> None:
             sys.exit(1)
 
     comic_trunk = settings.get("COMIC_TRUNK", "Cache").lower()
-    if comic_trunk not in ["cache", "staticdb", "json"]:
+    if comic_trunk not in ["cache", "staticdb", "json", "localcvdb"]:
         logger.warning("COMIC_TRUNK setting not recognised, defaulting to Cache")
         comic_trunk = "cache"
 
@@ -65,6 +66,18 @@ def main() -> None:
 
             cv_app = CVApp(
                 trunk=StaticDBTrunk(
+                    database_path=Path(db_path)),
+                api_keys=settings.get("API_KEYS"))
+
+        case "localcvdb":
+            db_path = Path(settings.get("LOCALCVDB_PATH"))
+
+            if not db_path.exists() and not db_path.is_file():
+                logger.error(f'{db_path} does not exist / is not a file')
+                sys.exit(1)
+
+            cv_app = CVApp(
+                trunk=LocalCVDBTrunk(
                     database_path=Path(db_path)),
                 api_keys=settings.get("API_KEYS"))
 

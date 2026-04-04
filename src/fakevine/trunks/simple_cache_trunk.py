@@ -122,8 +122,8 @@ class SimpleCacheTrunk(ComicTrunk):
         else:
             field_list = params.field_list.split(',')
             filtered_classes = \
-                filtered_model(DetailCharacter, field_list) | \
-                filtered_model(DetailConcept, field_list) | \
+                filtered_model(SearchCharacter, field_list) | \
+                filtered_model(SearchConcept, field_list) | \
                 filtered_model(SearchIssue, field_list) | \
                 filtered_model(SearchObject, field_list) | \
                 filtered_model(SearchOrigin, field_list) | \
