@@ -91,7 +91,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Delete old images
-        uses: actions/delete-package-versions@e5bc658cc4c965c472efe991f8beea3981499c55
+        uses: actions/delete-package-versions@4dbb860504f6d0cde296a192842138c03915746a
         continue-on-error: true
         with:
           package-name: ${{ github.repository }}
