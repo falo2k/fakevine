@@ -1,0 +1,71 @@
+services:
+  caddy:
+    build:
+      context: .
+      dockerfile: Dockerfile.caddy
+    container_name: fakevine-caddy
+    ports:
+      - "8463:8463"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./data/caddy/data:/data
+      - ./data/caddy/config:/config
+    environment:
+      - CADDY_FORMAT=json
+    depends_on:
+      redis:
+        condition: service_healthy
+      fakevine:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8463/caddy_ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - fakevine-network
+
+  fakevine:
+    image: ghcr.io/falo2k/fakevine:latest
+    container_name: fakevine-app
+    volumes:
+      - ./data/fakevine:/data
+    environment:
+      - FAKEVINE_LOG_FILE_ENABLE=true
+      - FAKEVINE_CACHE_CV_API_KEY=<replaceme>
+      - FAKEVINE_LOG_FILE_NAME=/data/fakevine.log
+      - FAKEVINE_CACHE_DB_PATH=/data/cache-trunk.sqlite
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8463/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - fakevine-network
+    expose:
+      - "8463"
+
+  redis:
+    image: redis:7-alpine
+    container_name: fakevine-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data/redis:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fakevine-network
+
+networks:
+  fakevine-network:
+    driver: bridge
