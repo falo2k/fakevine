@@ -1,0 +1,101 @@
+name: Build and Publish Docker Images (Branch)
+
+on:
+  push:
+    branches-ignore:
+      - master
+      - 'renovate/**'
+      - 'release-please/**'
+  workflow_dispatch:
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        variant: [prod, dev]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd #v4
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 #v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Determine Docker tags
+        id: meta
+        run: |
+          VARIANT_SUFFIX=""
+          if [ "${{ matrix.variant }}" = "dev" ]; then
+            VARIANT_SUFFIX="-dev"
+          fi
+
+          DOCKERFILE="Dockerfile"
+          if [ "${{ matrix.variant }}" = "dev" ]; then
+            DOCKERFILE="Dockerfile.dev"
+          fi
+
+          # Extract branch name from ref
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          SHORT_SHA=${GITHUB_SHA:0:7}
+          
+          TAGS="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${BRANCH_NAME}${VARIANT_SUFFIX}"
+          TAGS="${TAGS},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${BRANCH_NAME}-${SHORT_SHA}${VARIANT_SUFFIX}"
+
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+          echo "dockerfile=${DOCKERFILE}" >> $GITHUB_OUTPUT
+          echo "branch=${BRANCH_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7
+        with:
+          context: .
+          file: ./${{ steps.meta.outputs.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  cleanup:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: always()
+    permissions:
+      packages: write
+    steps:
+      - name: Login to GHCR
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 #v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete old images
+        uses: actions/delete-package-versions@e5bc658cc4c965c472efe991f8beea3981499c55 #v5
+        continue-on-error: true
+        with:
+          package-name: ${{ github.repository }}
+          package-type: container
+          min-versions-to-keep: 10
+          ignore-versions: |-
+            latest
+            latest-dev
+            nightly
+            nightly-dev
