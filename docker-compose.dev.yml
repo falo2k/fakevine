@@ -12,7 +12,7 @@ services:
       - FAKEVINE_CACHE_DB_PATH=/data/cache-trunk.sqlite
       - FAKEVINE_CACHE_CV_API_KEY=replaceme
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8463/_health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8463/health"]
       interval: 30s
       timeout: 10s
       retries: 3
