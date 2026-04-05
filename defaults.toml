@@ -13,6 +13,7 @@ API_KEYS=[]
 
 ## Optionally enable writing to a log file + rotation/retention settings (see loguru documentation)
 LOG_FILE_ENABLE=false
+LOG_FILE_NAME="fakevine.log"
 LOG_ROTATION="1 day"
 LOG_RETENTION="1 week"
 ## Location of a failures file, used for forcing certain responses when used as a testing tool (not yet implemented)

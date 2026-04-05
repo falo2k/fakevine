@@ -34,7 +34,7 @@ def main() -> None:
         rotation = settings.get("LOG_ROTATION")
         retention = settings.get("LOG_RETENTION")
         try:
-            logger.add('fakevine.log', rotation=rotation, retention=retention)
+            logger.add(settings.get("LOG_FILE_NAME"), rotation=rotation, retention=retention)
         except ValueError as ex:
             message = f"Error setting up file logging.  {ex}"
             logger.error(message)

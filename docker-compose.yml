@@ -7,6 +7,8 @@ services:
       - fakevine-data:/data
     environment:
       - FAKEVINE_LOG_FILE_ENABLE=true
+      - FAKEVINE_LOG_FILE_NAME=/data/fakevine.log
+      - FAKEVINE_CACHE_DB_PATH=/data/cache-trunk.sqlite
       - FAKEVINE_CACHE_CV_API_KEY=replaceme
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8463/_health"]
