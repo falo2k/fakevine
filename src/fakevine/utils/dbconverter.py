@@ -93,7 +93,7 @@ def rebuild_fts_indexes(engine: Engine, entity: str) -> None:
         connection.commit()
 
 
-def convert_db(reddit_db: Path, output_db: Path):
+def convert_db(reddit_db: Path, output_db: Path) -> None:  # noqa: C901, D103, PLR0912, PLR0915
     # Basic sanity check that the input DB has the tables we want
     console.log("Validating input DB structure")
     reddit_db_engine: Engine = create_engine(f"sqlite:///{reddit_db.absolute()}")
@@ -170,7 +170,7 @@ def convert_db(reddit_db: Path, output_db: Path):
 
             with Session(output_db_engine) as output_session:
                 for x in static_data.results:
-                    new_data = db_model(**x.model_dump())  # ty:ignore[no-matching-overload]
+                    new_data = db_model(**x.model_dump())
                     output_session.add(new_data)
                     static_progress.update(task_id, advance=increment)
 
@@ -250,9 +250,14 @@ def convert_db(reddit_db: Path, output_db: Path):
     console.log("Creating FTS triggers")
     create_fts_triggers(output_db_engine)
 
+    console.log("Enabling WAL")
+    with output_db_engine.connect() as connection:
+            connection.execute(text("PRAGMA journal_mode=WAL;"))
+
     console.log("All done! :white_check_mark:")
 
 def capture_update_record(table: str, db_model: type[cvdbmodels.BaseEntity], session: Session) -> None:
+    """Create update records based on the last updated entry in the relevant table."""
     timestamp = datetime.datetime.fromtimestamp(0, tz=ZoneInfo("US/Pacific"))
     latest_record = session.execute(select(db_model).order_by(db_model.date_last_updated.desc())).first()
     if latest_record is not None:
@@ -264,9 +269,9 @@ def capture_update_record(table: str, db_model: type[cvdbmodels.BaseEntity], ses
         last_cv_update_datetime_pt=timestamp))
     session.commit()
 
-def process_cv_table(progress: Progress, task_id: TaskID, reddit_db_table: Table,
+def process_cv_table(progress: Progress, task_id: TaskID, reddit_db_table: Table,  # noqa: D103, PLR0913
                          reddit_db_connection: Connection, output_session: Session,
-                         parsing_function: Callable, commit_batch_size: int):
+                         parsing_function: Callable, commit_batch_size: int) -> None:
         select_stmt = select(reddit_db_table.c.raw_api_response).order_by(reddit_db_table.c.date_last_updated.asc())
         data = reddit_db_connection.execute(select_stmt).all()
         progress.start_task(task_id)
