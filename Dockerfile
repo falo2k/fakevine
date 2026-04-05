@@ -20,6 +20,8 @@ FROM python:3.14-alpine@sha256:faee120f7885a06fcc9677922331391fa690d911c020abb9e
 
 WORKDIR /app
 
+RUN apk --no-cache add curl
+
 # Copy virtual environment from builder
 COPY --from=builder /app/.venv /app/.venv
 COPY --from=builder /app /app
