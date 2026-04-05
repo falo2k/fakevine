@@ -1,0 +1,57 @@
+{
+	log {
+		format console
+		output stdout
+	}
+}
+
+# HTTP server listening on all interfaces
+:8463 {
+	# Health check for caddy
+	respond /caddy_ping "pong"
+
+	# Rate limiting: 30/minute for short term limits, 5000/hour otherwise - limited by API key across all endpoints
+	rate_limit {
+		zone fakevineburst {
+			# Do not rate limit healt checks
+			match not {
+				path /caddy_ping
+				path /health
+			}
+			# Note that this will rate limit missing API keys as well
+			key {query.api_key}
+			window 1m
+			events 30
+		}
+
+		zone fakevinelong {
+			match not {
+				path /caddy_ping
+				path /health
+			}
+			key {query.api_key}
+			window 1h
+			events 5000
+		}
+
+		log_key
+	}
+
+	# Cache handler with Redis storage: 30 minute TTL
+	cache {
+		allowed_http_verbs GET POST PATCH
+
+		cache_name fakevine
+
+		ttl 30m
+
+		redis {
+			url redis:6379
+		}
+	}
+
+	# Reverse proxy to fakevine application
+	reverse_proxy http://fakevine:8463 {
+		method GET
+	}
+}

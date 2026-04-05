@@ -32,8 +32,7 @@ As a full search engine, and unpicking how CV search **currently** works is out 
 Not yet implemented.  Originally the purpose of this project to create a testing tool ...
 
 ## Running in Docker
-
-See the example docker-compose files for how to deploy fakevine.  Settings can be set as environment variables in docker, or added as a file in `/data`.  At minimum you will want to set a `CACHE_CV_API_KEY` for the cache setup.
+See the example docker-compose files for how to deploy FakeVine.  Settings can be set as environment variables in docker, or added as a file in `/data`.  At minimum you will want to set a `CACHE_CV_API_KEY` for the cache setup, likely also paths for log storage.  As rate limiting and caching is out of scope for the app, an example compose is provided for deploying [Caddy](https://caddyserver.com/) to perform these services in front of FakeVine.
 
 **Available image tags:**
 - `latest` - Latest stable release
