@@ -183,24 +183,6 @@ class TestFilterParams:
         assert FilterParams(limit=50, api_key="testkey").limit == 50
         assert FilterParams(limit=100, api_key="testkey").limit == 100
 
-    def test_filter_params_limit_zero_invalid(self):
-        """Test FilterParams rejects limit of 0."""
-        with pytest.raises(ValidationError) as exc:
-            FilterParams(limit=0, api_key="testkey")
-        assert "greater than 0" in str(exc.value)
-
-    def test_filter_params_limit_exceeds_max(self):
-        """Test FilterParams rejects limit > 100."""
-        with pytest.raises(ValidationError) as exc:
-            FilterParams(limit=101, api_key="testkey")
-        assert "less than or equal to 100" in str(exc.value)
-
-    def test_filter_params_negative_offset_invalid(self):
-        """Test FilterParams rejects negative offset."""
-        with pytest.raises(ValidationError) as exc:
-            FilterParams(offset=-1, api_key="testkey")
-        assert "greater than or equal to 0" in str(exc.value)
-
     def test_filter_params_valid_offset(self):
         """Test FilterParams accepts valid offset values."""
         assert FilterParams(offset=0, api_key="testkey").offset == 0
@@ -229,18 +211,6 @@ class TestSearchParams:
         assert SearchParams(limit=1, api_key="testkey").limit == 1
         assert SearchParams(limit=5, api_key="testkey").limit == 5
         assert SearchParams(limit=10, api_key="testkey").limit == 10
-
-    def test_search_params_limit_zero_invalid(self):
-        """Test SearchParams rejects limit of 0."""
-        with pytest.raises(ValidationError) as exc:
-            SearchParams(limit=0, api_key="testkey")
-        assert "greater than 0" in str(exc.value)
-
-    def test_search_params_limit_exceeds_max(self):
-        """Test SearchParams rejects limit > 10."""
-        with pytest.raises(ValidationError) as exc:
-            SearchParams(limit=11, api_key="testkey")
-        assert "less than or equal to 10" in str(exc.value)
 
     def test_search_params_with_query(self):
         """Test SearchParams with query parameter."""
@@ -587,24 +557,6 @@ class TestDetailVolume:
         assert v.characters is None
         assert v.issues is None
         assert v.locations is None
-
-
-# ---------------------------------------------------------------------------
-# Request models
-# ---------------------------------------------------------------------------
-
-def test_filter_params_valid_and_invalid():
-    fp = FilterParams(api_key="testkey")
-    assert fp.limit == 100
-    with pytest.raises(ValidationError):
-        FilterParams(limit=0, api_key="testkey")
-
-
-def test_search_params_valid_and_invalid():
-    sp = SearchParams(api_key="testkey")
-    assert sp.limit == 10
-    with pytest.raises(ValidationError):
-        SearchParams(limit=11, api_key="testkey")
 
 
 # ---------------------------------------------------------------------------

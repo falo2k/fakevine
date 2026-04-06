@@ -173,6 +173,14 @@ class CVApp:
             Response: The appropriate CV API compatible response.
 
         """
+        if isinstance(params, FilterParams | SearchParams):
+            params.limit = 100 if params.limit <= 0 else min(100, params.limit)
+            params.offset =max(0, params.offset)
+
+            # Undocumented paging.  Occurs after validation of limit and overrides offset
+            if params.page is not None and params.page > 0:
+                params.offset = params.limit * (params.page - 1)
+
         if self.api_keys != [] and params.api_key not in self.api_keys:
             status_code, data = self._exception_responses[AuthenticationError]
         elif params.format == "jsonp" and (params.json_callback is None or params.json_callback == ""):

@@ -249,17 +249,19 @@ class CommonParams(BaseModel):
         return v.lower()
 
 class FilterParams(CommonParams):
-    limit: int = Field(100, gt=0, le=100)
-    offset: int = Field(0, ge=0)
+    limit: int = Field(100)
+    offset: int = Field(0)
     sort: Annotated[str | None, "Sort by field and direction (asc/desc) in the format field:asc"] = "id:asc"
     filter: Annotated[str | None, "Filters to apply.  Comma delimited of the form field:value, or field:valA|valB for date ranges"] = None
+    page: int | None = None
 
 class SearchParams(CommonParams):
-    limit: int = Field(10, gt=0, le=10)
-    offset: int = Field(0, ge=0)
+    limit: int = Field(10)
+    offset: int = Field(0)
     sort: Annotated[str | None, "Sort by field and direction (asc/desc) in the format field:asc"] = "id:asc"
     query: str | None = None
     resources: str | None = None
+    page: int | None = None
 
 ## Response Models
 class CVResponse(BaseModel):
