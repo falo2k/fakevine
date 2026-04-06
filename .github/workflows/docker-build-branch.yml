@@ -92,11 +92,7 @@ jobs:
         uses: actions/delete-package-versions@e5bc658cc4c965c472efe991f8beea3981499c55 #v5
         continue-on-error: true
         with:
-          package-name: ${{ github.repository }}
+          package-name: ${{ github.event.repository.name }}
           package-type: container
           min-versions-to-keep: 10
-          ignore-versions: |-
-            latest
-            latest-dev
-            nightly
-            nightly-dev
+          ignore-versions: '^(latest|nightly|latest-dev|nightly-dev)$'
