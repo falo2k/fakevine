@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/falo2k/fakevine/compare/v0.2.0...v0.2.1) (2026-04-06)
+
+
+### Continuous Integration
+
+* reduce tagged versions and use untagged for cleanup as ignore-versions cannot behave ([50b4306](https://github.com/falo2k/fakevine/commit/50b430646caad72fb454824debc1f9ffbacc9164))
+
 ## [0.2.0](https://github.com/falo2k/fakevine/compare/v0.1.0...v0.2.0) (2026-04-06)
 
 
