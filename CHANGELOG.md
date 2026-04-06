@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.2.0](https://github.com/falo2k/fakevine/compare/v0.1.0...v0.2.0) (2026-04-06)
+
+
+### Features
+
+* support undocumented or filter on id fields ([608e2ab](https://github.com/falo2k/fakevine/commit/608e2abf89d1a0cd1b82aa0cf2e4439d56e025d8))
+
+
+### Bug Fixes
+
+* encoding mistake + declaration = bad times ([b7364b9](https://github.com/falo2k/fakevine/commit/b7364b9e3025144b4a3bca152892129404ff6672))
+* fixing missing character gender filter and proper character filtering ([3639c43](https://github.com/falo2k/fakevine/commit/3639c43ff31c147e6e483d5c526165b53b727885))
+* **localcvdb:** ignore unrecognised sort arguments ([48ef99e](https://github.com/falo2k/fakevine/commit/48ef99e2d79227a74008cf31cea13a0574866ea9))
+* resource_type made part of core api responses to fix xml on filtered models which can't retain private attrs ([946821f](https://github.com/falo2k/fakevine/commit/946821f8f967bfafe1c983188a8905c1bb06d67f))
+* response tweaks to volume/issues ([9af449b](https://github.com/falo2k/fakevine/commit/9af449bab0502a6ba3e81f6a50ed8c8842d5c1bf))
+
 ## 0.1.0 (2026-04-05)
 
 
