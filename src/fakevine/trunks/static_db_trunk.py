@@ -110,6 +110,9 @@ class StaticDBTrunk(ComicTrunk):
                 except ValueError:
                     logger.error(f'Could not parse date filter values {filter_value} for {filter_name}.  Ignoring.')
                     continue
+            elif filter_name == 'gender':
+                # Special case on Character models.  Rejects anything after a pipe.
+                query = query.where(columns[filter_name] == api.CharacterGender[filter_value.split('|')[0]])
             elif 'str' in str(field_info.annotation):
                 query = query.where(columns[filter_name].contains(filter_value))
             # Special case for volume as it is id mapped

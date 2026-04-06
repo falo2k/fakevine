@@ -275,9 +275,9 @@ class CVApp:
         return await self._fetch_response(params=params, trunk_method=self.trunk.character, item_id=character_id)
 
     async def _get_characters(self, params: Annotated[FilterParams, Query()]) -> Response:
-        params.sort = validate_sort_order(params.sort, cvapimodels.BaseVolume)
-        params.field_list = validate_field_list(params.field_list, cvapimodels.BaseVolume)
-        params.filter = validate_filter_list(params.filter, cvapimodels.BaseVolume)
+        params.sort = validate_sort_order(params.sort, cvapimodels.BaseCharacter)
+        params.field_list = validate_field_list(params.field_list, cvapimodels.BaseCharacter)
+        params.filter = validate_filter_list(params.filter, cvapimodels.BaseCharacter)
 
         return await self._fetch_response(params=params, trunk_method=self.trunk.characters)
 

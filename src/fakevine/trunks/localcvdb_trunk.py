@@ -94,11 +94,11 @@ class LocalCVDBTrunk(ComicTrunk):
                     continue
             elif 'str' in str(field_info.annotation):
                 query = query.where(columns[filter_name].contains(filter_value))
-            elif 'int' in str(field_info.annotation):
-                query = query.where(columns[filter_name] == filter_value)
-            elif filter_name == 'volume':
-                # Special case for issue search
-                query = query.where(columns['volume_id'] == filter_value)
+            # Special case for volume as it is id mapped
+            elif 'int' in str(field_info.annotation) or filter_name == 'volume':
+                column_name = 'volume_id' if filter_name == 'volume' else filter_name
+                # Undocumented search feature for ids (the only integer filters) to have an "OR" list pipe delimited
+                query = query.where(columns[column_name].in_(filter_value.split('|')))
             else:
                 error_msg = f'Do not know how to handle filter for {filter_name} with type {field_info.annotation}.  Ignoring.'
                 logger.error(error_msg)

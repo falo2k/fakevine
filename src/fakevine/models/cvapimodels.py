@@ -1,6 +1,6 @@
 # ruff: noqa: D101, FIX002
 import datetime
-from enum import Enum
+from enum import Enum, IntEnum
 from typing import Annotated, Any, Literal
 
 from pydantic import (
@@ -30,6 +30,13 @@ class FieldType(Enum):
     Sortable = 1
     Filterable = 2
     DateTime = 3
+
+class CharacterGender(IntEnum):
+    """Character genders from the CV database."""
+
+    other = 0
+    male = 1
+    female = 2
 
 ## Utility functions for request parameter validation
 def split_and_validate_field_list(value: str | None, model: type[BaseModelExtra] | list[type[BaseModelExtra]]) -> list[str] | None:
