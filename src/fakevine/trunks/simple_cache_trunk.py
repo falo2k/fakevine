@@ -1,5 +1,8 @@
 # ruff: noqa: F403, F405, D102
 from aiohttp_client_cache import CachedSession, SQLiteBackend
+from cachetools import TTLCache
+from cachetools.keys import hashkey
+from cachetools_async import cached
 
 from fakevine.models.cvapimodels import *
 from fakevine.trunks.comic_trunk import (
@@ -78,6 +81,9 @@ class SimpleCacheTrunk(ComicTrunk):
         if self._session is None:
             self._session = CachedSession(base_url=self._cv_api_url, cache=self._cache)
 
+    @cached(cache=TTLCache(ttl=360, maxsize=128), key=lambda _, endpoint, params, *__:
+        hashkey(endpoint, params.field_list, params.limit, params.offset, params.sort, params.filter, params.page)
+        if isinstance(params, FilterParams) else hashkey(endpoint, params.field_list))
     async def _process_response(self, endpoint: str, params: CommonParams, response_collection: type[SingleResponse | MultiResponse], \
                 result_model: type[BaseModelExtra]) -> SingleResponse[type[BaseModelExtra]] | MultiResponse[type[BaseModelExtra]]:
             modified_params = params.model_copy(update={'api_key' : self._cv_api_key, 'format' : 'json'})
@@ -102,6 +108,8 @@ class SimpleCacheTrunk(ComicTrunk):
 
             return response_collection[return_class].model_validate(await response.json())  # ty:ignore[invalid-return-type, unresolved-attribute]
 
+    @cached(cache=TTLCache(ttl=360, maxsize=128), key=lambda _, endpoint, params, *__:
+        hashkey(endpoint, params.field_list, params.limit, params.offset, params.sort, params.filter, params.page, params.resources, params.query))
     async def search(self, params: SearchParams) -> SearchResponse:
         modified_params = params.model_copy(update={'api_key' : self._cv_api_key, 'format' : 'json'})
 

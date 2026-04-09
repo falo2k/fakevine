@@ -1,13 +1,15 @@
 # ruff: noqa: EM101, D102
 import re
-from typing import TYPE_CHECKING, Any, Coroutine
+from typing import TYPE_CHECKING, Any
 
+from cachetools import TTLCache
+from cachetools.keys import hashkey
+from cachetools_async import cached
 from loguru import logger
 from sqlalchemy import (
     Engine,
     Float,
     Integer,
-    Result,
     Row,
     Select,
     Sequence,
@@ -126,6 +128,8 @@ class StaticDBTrunk(ComicTrunk):
 
         return query
 
+    @cached(cache=TTLCache(ttl=360, maxsize=128), key=lambda _, params, db_table, *__:
+        hashkey(params.field_list, db_table.__tablename__))
     async def _generate_single_response(self, item_id: int, params: api.CommonParams, db_table: type[db.BaseTable],
                             api_model: type[api.BaseModelExtra], mapping_function: Callable) -> api.SingleResponse[api.BaseModelExtra]:
         async with self.session() as session:
@@ -155,6 +159,8 @@ class StaticDBTrunk(ComicTrunk):
                 status_code=1,
                 results=response_object)
 
+    @cached(cache=TTLCache(ttl=360, maxsize=128), key=lambda _, params, db_table, *__:
+        hashkey(params.field_list, params.limit, params.offset, params.sort, params.filter, params.page, db_table.__tablename__))
     async def _generate_multi_response(self, params: api.FilterParams, db_table: type[db.BaseTable], api_model: type[api.BaseModelExtra],
                                         mapping_function: Callable) -> api.MultiResponse[api.BaseModelExtra]:
         async with self.session() as session:
@@ -773,6 +779,8 @@ class StaticDBTrunk(ComicTrunk):
         return await self._generate_multi_response(params, db.Publisher, api.BasePublisher,
                 self._get_publisher_data)  # ty:ignore[invalid-return-type]
 
+    @cached(cache=TTLCache(ttl=360, maxsize=128), key=lambda _, params:
+        hashkey(params.field_list, params.limit, params.offset, params.sort, params.filter, params.page, params.resources, params.query))
     async def search(self, params: api.SearchParams) -> api.SearchResponse:
         if params.query is None or params.query == "":
             raise ObjectNotFoundError
