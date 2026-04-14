@@ -1,6 +1,6 @@
 [project]
 name = "FakeVine"
-version = "0.2.2"
+version = "0.3.0"
 description = "A ComicVine API compatible FastAPI router"
 readme = "README.md"
 authors = [

@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.0](https://github.com/ComicTools/fakevine/compare/v0.2.2...v0.3.0) (2026-04-14)
+
+
+### Features
+
+* added locust as a tool for load testing and implemented a basic ttlcache on trunks for 5 minutes ([e9c347a](https://github.com/ComicTools/fakevine/commit/e9c347af8b0ac97001bb59fcc70f4693d54cab11))
+* use localcvdb image_url for cover image ([659b184](https://github.com/ComicTools/fakevine/commit/659b1843eccf98de3f00b188d1ccec4b56830bdb))
+
+
+### Bug Fixes
+
+* cache key missing on single responses for database trunks ([aef1e43](https://github.com/ComicTools/fakevine/commit/aef1e438ce0f3fbca96f0e53d9b269353d207873))
+* fix search cache hashkey ([35546f4](https://github.com/ComicTools/fakevine/commit/35546f41e3d05fac1a755f235de3dd91ce7720b5))
+
 ## [0.2.2](https://github.com/falo2k/fakevine/compare/v0.2.1...v0.2.2) (2026-04-06)
 
 
