@@ -12,8 +12,12 @@
     "group:allDigest"
   ],
   "packageRules": [{
-    "managers": ["docker-compose"],
-    "updateTypes": ["digest"],
+      "matchManagers": [
+        "docker-compose"
+      ],
+      "matchUpdateTypes": [
+        "digest"
+      ],
     "enabled": false
   }]
 }
