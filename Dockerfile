@@ -1,6 +1,6 @@
 # Production Dockerfile for fakevine using multi-stage build
 # Stage 1: Builder - Install dependencies using uv
-FROM python:3.14-alpine@sha256:faee120f7885a06fcc9677922331391fa690d911c020abb9e8025ff3d908e510 AS builder
+FROM python:3.14-alpine@sha256:01f125438100bb6b5770c0b1349e5200b23ca0ae20a976b5bd8628457af607ae AS builder
 
 WORKDIR /app
 
@@ -16,7 +16,7 @@ COPY . .
 RUN uv sync --frozen --no-dev
 
 # Stage 2: Runtime - Minimal image with only the virtual environment
-FROM python:3.14-alpine@sha256:faee120f7885a06fcc9677922331391fa690d911c020abb9e8025ff3d908e510
+FROM python:3.14-alpine@sha256:01f125438100bb6b5770c0b1349e5200b23ca0ae20a976b5bd8628457af607ae
 
 WORKDIR /app
 
