@@ -10,5 +10,10 @@
     "abandonments:recommended",
     ":maintainLockFilesWeekly",
     "group:allDigest"
-  ]
+  ],
+  "packageRules": [{
+    "managers": ["docker-compose"],
+    "updateTypes": ["digest"],
+    "enabled": false
+  }]
 }
