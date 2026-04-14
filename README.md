@@ -49,11 +49,11 @@ See the example docker-compose files for how to deploy FakeVine.  Settings can b
 While I don't currently plan to distribute this repo through pip, you can add the package using uv directly from GitHub using one of the commands below.
 
 ```bash
-uv add "fakevine @ git+https://github.com/falo2k/fakevine.git"
+uv add "fakevine @ git+https://github.com/comictools/fakevine.git"
 ```
 
 ```bash
-uv add "fakevine @ git+ssh://git@github.com/falo2k/fakevine.git"
+uv add "fakevine @ git+ssh://git@github.com/comictools/fakevine.git"
 ```
 
 To create a custom backend, extend the ComicTrunk class and pass an instance to your FakeVine instance.  As an example, you can reproduce the default cached CV setup with the following code.  You can use it in an existing application as a [sub-application](https://fastapi.tiangolo.com/advanced/sub-applications/).

@@ -28,7 +28,7 @@ services:
       - fakevine-network
 
   fakevine:
-    image: ghcr.io/falo2k/fakevine:latest
+    image: ghcr.io/comictools/fakevine:latest
     container_name: fakevine-app
     volumes:
       - ./data/fakevine:/data

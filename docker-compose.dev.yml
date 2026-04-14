@@ -1,6 +1,6 @@
 services:
   fakevine-dev:
-    image: ghcr.io/falo2k/fakevine:latest-dev
+    image: ghcr.io/comictools/fakevine:latest-dev
     ports:
       - "8463:8463"
       - "5678:5678"

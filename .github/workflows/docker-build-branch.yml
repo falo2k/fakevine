@@ -15,7 +15,6 @@ concurrency:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build-and-push:
@@ -56,7 +55,9 @@ jobs:
           # Extract branch name from ref
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
           
-          TAGS="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${BRANCH_NAME}${VARIANT_SUFFIX}"
+          IMAGE_NAME=${GITHUB_REPOSITORY,,}
+
+          TAGS="${{ env.REGISTRY }}/${IMAGE_NAME}:${BRANCH_NAME}${VARIANT_SUFFIX}"
           
           echo "tags=${TAGS}" >> $GITHUB_OUTPUT
           echo "dockerfile=${DOCKERFILE}" >> $GITHUB_OUTPUT

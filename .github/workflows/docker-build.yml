@@ -14,7 +14,6 @@ concurrency:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build-and-push:
@@ -47,6 +46,8 @@ jobs:
             VARIANT_SUFFIX="-dev"
           fi
 
+          IMAGE_NAME=${GITHUB_REPOSITORY,,}
+
           TAGS=""
           DOCKERFILE="Dockerfile"
 
@@ -57,11 +58,11 @@ jobs:
           # If this is a release (tag push)
           if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
             VERSION=${GITHUB_REF#refs/tags/v}
-            TAGS="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest${VARIANT_SUFFIX}"
-            TAGS="${TAGS},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:v${VERSION}${VARIANT_SUFFIX}"
+            TAGS="${{ env.REGISTRY }}/${IMAGE_NAME}:latest${VARIANT_SUFFIX}"
+            TAGS="${TAGS},${{ env.REGISTRY }}/${IMAGE_NAME}:v${VERSION}${VARIANT_SUFFIX}"
           # If this is a commit to master
           elif [ "${{ github.ref }}" = "refs/heads/master" ]; then
-            TAGS="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:nightly${VARIANT_SUFFIX}"
+            TAGS="${{ env.REGISTRY }}/${IMAGE_NAME}:nightly${VARIANT_SUFFIX}"
           fi
 
           echo "tags=${TAGS}" >> $GITHUB_OUTPUT
