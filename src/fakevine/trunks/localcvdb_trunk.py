@@ -108,8 +108,8 @@ class LocalCVDBTrunk(ComicTrunk):
 
         return query
 
-    @cached(cache=TTLCache(ttl=360, maxsize=128), key=lambda _, params, db_table, *__:
-            hashkey(params.field_list, db_table.__tablename__))
+    @cached(cache=TTLCache(ttl=360, maxsize=128), key=lambda _, item_id, params, db_table, *__:
+            hashkey(item_id, params.field_list, db_table.__tablename__))
     async def _generate_single_response(self, item_id: int, params: api.CommonParams, db_table: type[db.BaseTable],
                             api_model: type[api.BaseModelExtra], mapping_function: Callable) -> api.SingleResponse[api.BaseModelExtra]:
         async with self.session() as session:
