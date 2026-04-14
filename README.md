@@ -79,7 +79,7 @@ if __name__ == "__main__":
 ```
 
 ## Contributing
-Contributions will be welcome once I've got the core finished, but I'd suggest reaching out before starting anything large.  Contributions that are entirely or majority AI generated (both code and documentation) will likely be rejected.   You can find me on the [CBL-ReadingLists discord](https://discord.gg/DQmHfzFdGG). 
+Contributions will be welcome once I've got the core finished, but I'd suggest reaching out before starting anything large.  Contributions that are entirely or majority AI generated (both code and documentation) will likely be rejected.   You can find me on the [Mylar](https://discord.gg/6qpyCZRZRB) or [CBL-ReadingLists](https://discord.gg/DQmHfzFdGG) discords.
 
 Any commits should be done using [commitizen](https://commitizen-tools.github.io/commitizen/) by running `uv run cz c`.  Consider squashing before submitting a PR if you have a scrappy commit history.
 
