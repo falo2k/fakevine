@@ -1,5 +1,5 @@
 # Build Caddy with cache-handler and rate-limit plugins
-FROM caddy:2.11.2-builder-alpine@sha256:ff7dd52d7a2b46429367617bbde8812b5e7c567139a0d713607e6122d9dc62c4 AS builder
+FROM caddy:2.11.2-builder-alpine@sha256:113249e07ac54f02da3e395a7150124562af1a3129b0b1498ddbb39f5b3fc430 AS builder
 
 # Install the cache-handler and rate-limit plugins
 RUN --mount=type=cache,target=/go/pkg/mod \
@@ -10,7 +10,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     --with github.com/mholt/caddy-ratelimit
 
 # Final stage: use the built Caddy
-FROM caddy:2.11.2-alpine@sha256:fce4f15aad23222c0ac78a1220adf63bae7b94355d5ea28eee53910624acedfa
+FROM caddy:2.11.2-alpine@sha256:834468128c7696cec0ceea6172f7d692daf645ae51983ca76e39da54a97c570d
 
 # Copy the custom-built caddy binary from builder
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy
