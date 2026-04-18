@@ -50,7 +50,7 @@ services:
       - "8463"
 
   redis:
-    image: redis:8-alpine
+    image: redis:8-alpine@sha256:c5e375abb885e6b2021c0377879e4890bf76f9065b8922ffc113f2b226b9fc17
     container_name: fakevine-redis
     ports:
       - "6379:6379"
