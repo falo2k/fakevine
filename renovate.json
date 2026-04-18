@@ -11,6 +11,10 @@
     ":maintainLockFilesWeekly",
     "group:allDigest"
   ],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true
+  },
   "packageRules": [{
       "matchManagers": [
         "docker-compose"
